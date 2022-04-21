@@ -13,12 +13,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
+import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.ui.screens.AddRoutineActivity
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
+    preferences: UserPreferences,
+    socketProvider: SocketProvider,
     droneViewModel: ChargingStationViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -36,7 +40,10 @@ fun MainScreen(
         }
     ) {
         Column {
-            AlertBox()
+            AlertBox(
+                preferences,
+                socketProvider
+            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()

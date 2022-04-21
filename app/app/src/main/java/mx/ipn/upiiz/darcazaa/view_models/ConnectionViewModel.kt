@@ -1,21 +1,21 @@
 package mx.ipn.upiiz.darcazaa.view_models
 
-import android.content.SharedPreferences
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import mx.ipn.upiiz.darcazaa.data.data_providers.LocalDatabase
+import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SyncingStatus
+import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.data.repositories.ConnectionRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
     private val connectionRepository: ConnectionRepository,
-    private val preferences: SharedPreferences,
+    private val preferences: UserPreferences,
     localDatabase: LocalDatabase
 ): ViewModel() {
     val isConnected = mutableStateOf(false)
@@ -31,6 +31,7 @@ class ConnectionViewModel @Inject constructor(
 
     private fun listenUrlChanges() = viewModelScope.launch {
         kotlin.runCatching {
+            println("Listening url changes")
             connectionRepository.urlChanges().collect {
                 url.value = it
             }
@@ -42,12 +43,12 @@ class ConnectionViewModel @Inject constructor(
     private fun waitForConnection() = viewModelScope.launch {
         while (true){
             while (true){
-                println("Waiting for connection in ${preferences.getString("url", "192.168.1.1")} ...")
+                println("Waiting for connection in ${preferences.get(PreferenceKeys.Url, "192.168.1.1")} ...")
                 if(connectionRepository.tryConnect()) break
                 else delay(1000)
                 loading.value = false
             }
-            println("Connected in ${preferences.getString("url", "192.168.1.1")}")
+            println("Connected in ${preferences.get(PreferenceKeys.Url, "192.168.1.1")}")
             isConnected.value = true
             val syncingStatus = listenSyncingStatus()
             val hashes = listenToHashes()

@@ -1,24 +1,24 @@
 package mx.ipn.upiiz.darcazaa.view_models
 
-import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.socket.client.IO
 import kotlinx.coroutines.launch
+import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
+import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.data.repositories.DrivingSocketIORepository
 import javax.inject.Inject
-import kotlin.math.sign
 
 @HiltViewModel
 class DriverViewModel @Inject constructor(
-    preferences: SharedPreferences
+    preferences: UserPreferences
 ) : ViewModel() {
     private var currentX = 0.0
     private var currentY = 0.0
     private var currentZ = 0.0
     private val socket = IO.socket(
-        "ws://${preferences.getString("url", "192.168.1.1")}/routines",
+        "ws://${preferences.get(PreferenceKeys.Url, "192.168.1.1")}/routines",
         IO.Options.builder().setTransports(arrayOf("websocket"))
             .setAuth(mapOf("authorization" to "driver")).build()
     ).connect()

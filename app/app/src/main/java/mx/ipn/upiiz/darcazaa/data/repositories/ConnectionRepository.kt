@@ -1,19 +1,17 @@
 package mx.ipn.upiiz.darcazaa.data.repositories
 
-import android.content.SharedPreferences
 import io.socket.client.Socket
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import mx.ipn.upiiz.darcazaa.data.models.RoutineWithWaypoints
-import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
-import mx.ipn.upiiz.darcazaa.data.models.SyncingStatus
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import mx.ipn.upiiz.darcazaa.data.models.*
 import mx.ipn.upiiz.darcazaa.utils.mergeAll
 import org.json.JSONArray
 import org.json.JSONObject
-import java.lang.Exception
 
 interface ConnectionRepository {
     suspend fun tryConnect(): Boolean
@@ -27,7 +25,7 @@ interface ConnectionRepository {
 
 class ConnectionSocketIORepository(
     private val socketProvider: SocketProvider,
-    private val preferences: SharedPreferences
+    private val preferences: UserPreferences
 ): ConnectionRepository{
     override suspend fun tryConnect(): Boolean = try {
         if(socketProvider.socket.connected()){
@@ -118,22 +116,8 @@ class ConnectionSocketIORepository(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun urlChanges(): Flow<String?> = callbackFlow {
-        if(preferences.contains("url")){
-            trySend(preferences.getString("url", ""))
-        }else{
-            trySend(null)
-        }
-        preferences.registerOnSharedPreferenceChangeListener { sharedPreferences, key ->
-            if(key == "url"){
-                if(sharedPreferences.contains("url")){
-                    trySend(sharedPreferences.getString("url", ""))
-                }else{
-                    trySend(null)
-                }
-            }
-        }
-
-        awaitClose {  }
-    }
+    override fun urlChanges(): Flow<String?>
+        = preferences.preferenceChanges
+            .filter { it.first === PreferenceKeys.Url }
+            .map { it.second as? String? }
 }

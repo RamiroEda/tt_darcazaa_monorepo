@@ -2,23 +2,29 @@ package mx.ipn.upiiz.darcazaa.ui.components
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
+import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
 import mx.ipn.upiiz.darcazaa.data.models.SyncingStatus
-import mx.ipn.upiiz.darcazaa.view_models.ConnectionViewModel
+import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
+import mx.ipn.upiiz.darcazaa.view_models.ConnectionViewModel
 
 @Composable
 fun AlertBox(
+    preferences: UserPreferences,
+    socketProvider: SocketProvider,
     connectionViewModel: ConnectionViewModel = viewModel(),
     droneViewModel: ChargingStationViewModel = viewModel()
 ) {
@@ -34,7 +40,7 @@ fun AlertBox(
         enter = fadeIn() + expandVertically(),
         exit = fadeOut() + shrinkVertically()
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
@@ -49,7 +55,7 @@ fun AlertBox(
                     } else MaterialTheme.colorScheme.background
                 )
                 .padding(16.dp),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = if (!isConnected) {
@@ -63,6 +69,16 @@ fun AlertBox(
                 }else  "",
                 style = MaterialTheme.typography.titleMedium
             )
+            if (!isConnected){
+                TextButton(
+                    onClick = {
+                        preferences.remove(PreferenceKeys.Url)
+                        socketProvider.socket.disconnect()
+                    }
+                ) {
+                    Text(text = "DESCONECTAR")
+                }
+            }
         }
     }
 }

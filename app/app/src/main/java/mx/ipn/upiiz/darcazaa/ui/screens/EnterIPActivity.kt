@@ -1,6 +1,5 @@
 package mx.ipn.upiiz.darcazaa.ui.screens
 
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -14,8 +13,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.*
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -23,14 +24,16 @@ import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.socket.client.IO
 import mx.ipn.upiiz.darcazaa.data.data_providers.ioOptions
+import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
+import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class EnterIPActivity : AppCompatActivity() {
     @Inject
-    lateinit var preferences: SharedPreferences
+    lateinit var preferences: UserPreferences
 
     @Inject
     lateinit var socketProvider: SocketProvider
@@ -42,7 +45,7 @@ class EnterIPActivity : AppCompatActivity() {
         setContent {
             DARCAZAATheme {
                 var ipText by remember {
-                    mutableStateOf(preferences.getString("url", "192.168.1.1") ?: "")
+                    mutableStateOf(preferences.get(PreferenceKeys.Url, "192.168.1.1") ?: "")
                 }
                 Scaffold {
                     Box(
@@ -67,7 +70,7 @@ class EnterIPActivity : AppCompatActivity() {
                                 modifier = Modifier.padding(top = 16.dp),
                                 onClick = {
                                     if(ipText.matches(Regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!\$)|\$)){4}\$"))){
-                                        preferences.edit().putString("url", ipText).apply()
+                                        preferences.set(PreferenceKeys.Url, ipText)
                                         socketProvider.socket = IO.socket("ws://$ipText/routines", ioOptions)
                                         finish()
                                     }

@@ -49,10 +49,10 @@ export class Server {
             for (const net of netInterface[1] ?? []) {
                 if (net.family === 'IPv4' && !net.internal) {
                     console.log(
-                        `\n\nIP para ${netInterface[0]}: ${net.address}`,
+                        `\n\nIP para ${netInterface[0]}: ${net.address}:${PORT}`,
                     );
 
-                    qrTerminal.generate(net.address);
+                    qrTerminal.generate(`${net.address}:${PORT}`);
                     console.log('\n\n');
                 }
             }
