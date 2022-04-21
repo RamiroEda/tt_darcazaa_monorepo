@@ -103,16 +103,23 @@ class DroneCom:
         self.send_message_listeners.append(func)
         
         
-    def translate_vehicle(self, velocity_x: float, velocity_y: float, velocity_z: float):
+    def translate_vehicle(self, velocity_x: float, velocity_y: float, velocity_z: float, relative = True):
+        if relative:
+            frame = mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED
+        else:
+            frame = mavutil.mavlink.MAV_FRAME_LOCAL_NED
+
         self.vehicle.send_mavlink(self.vehicle.message_factory.set_position_target_local_ned_encode(
             0, 0, 0,
-            mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED,
+            frame,
             0b0000111111000111,
             0, 0, 0,
-            velocity_x, velocity_y, velocity_z, 
-            0, 0, 0, 
+            velocity_x, velocity_y, velocity_z,
+            0, 0, 0,
             0, 0
         ))
+  
+        self.vehicle.flush()
     
         
     def rotate_vehicle(self, direction: int):
