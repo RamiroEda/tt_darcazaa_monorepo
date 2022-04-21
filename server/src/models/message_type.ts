@@ -1,0 +1,6 @@
+export enum MessageType {
+    STATUS_UPDATE = 'STATUS_UPDATE',
+    ERROR = 'ERROR',
+    LOCATION_UPDATE = 'LOCATION_UPDATE',
+    BATTERY_UPDATE = 'BATTERY_UPDATE',
+}

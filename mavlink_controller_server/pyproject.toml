@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "tt_darcazaa_charging_base_mavlink"
+version = "0.1.0"
+description = ""
+authors = ["RamiroEda <ramiroestradag@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+flask = "^1.1.2"
+dronekit = "^2.9.2"
+python-socketio = "^5.5.1"
+requests = "^2.27.1"
+websocket-client = "^1.2.3"
+
+[tool.poetry.dev-dependencies]
+python-dotenv = "^0.14.0"
+pytest = "^5.4.3"
+pytest-dotenv = "^0.5.2"

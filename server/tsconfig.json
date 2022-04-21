@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "pretty": true,
+      "resolveJsonModule": true,
+      "sourceMap": true,
+      "target": "es2021",
+      "outDir": "./dist",
+      "rootDir": "./src",
+      "baseUrl": "./src",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "strict": true,
+      "lib": ["es2021", "esnext.asynciterable"],
+      "skipLibCheck": true,
+      "esModuleInterop": true,
+      "paths": {
+          "@/*": ["./*"]
+      }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
