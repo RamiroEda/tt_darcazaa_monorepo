@@ -10,6 +10,8 @@ import '@tsed/socketio';
 import { RoutinesSocketService } from './socket_services/routines.socket_service';
 import { PORT } from './constants';
 import axios = require('axios');
+import qrTerminal = require('qrcode-terminal');
+import os = require('os');
 
 const rootDir = __dirname;
 
@@ -40,6 +42,21 @@ export class Server {
             await this.checkWeather();
             this.checkDatabase();
         });
+
+        const interfaces = Object.entries(os.networkInterfaces());
+
+        for (const netInterface of interfaces) {
+            for (const net of netInterface[1] ?? []) {
+                if (net.family === 'IPv4' && !net.internal) {
+                    console.log(
+                        `\n\nIP para ${netInterface[0]}: ${net.address}`,
+                    );
+
+                    qrTerminal.generate(net.address);
+                    console.log('\n\n');
+                }
+            }
+        }
     }
 
     private async checkWeather() {

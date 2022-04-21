@@ -42,7 +42,7 @@ class EnterIPActivity : AppCompatActivity() {
         setContent {
             DARCAZAATheme {
                 var ipText by remember {
-                    mutableStateOf(preferences.getString("url", "ws://192.168.1.1") ?: "")
+                    mutableStateOf(preferences.getString("url", "192.168.1.1") ?: "")
                 }
                 Scaffold {
                     Box(
@@ -66,9 +66,9 @@ class EnterIPActivity : AppCompatActivity() {
                             Button(
                                 modifier = Modifier.padding(top = 16.dp),
                                 onClick = {
-                                    if(ipText.matches(Regex("^([a-z0-9+.-]+):(?://(?:((?:[a-z0-9-._~!\$&'()*+,;=:]|%[0-9A-F]{2})*)@)?((?:[a-z0-9-._~!\$&'()*+,;=]|%[0-9A-F]{2})*)(?::(\\d*))?(/(?:[a-z0-9-._~!\$&'()*+,;=:@/]|%[0-9A-F]{2})*)?|(/?(?:[a-z0-9-._~!\$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!\$&'()*+,;=:@/]|%[0-9A-F]{2})*)?)(?:\\?((?:[a-z0-9-._~!\$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?(?:#((?:[a-z0-9-._~!\$&'()*+,;=:/?@]|%[0-9A-F]{2})*))?\$", RegexOption.IGNORE_CASE))){
+                                    if(ipText.matches(Regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!\$)|\$)){4}\$"))){
                                         preferences.edit().putString("url", ipText).apply()
-                                        socketProvider.socket = IO.socket("$ipText/routines", ioOptions)
+                                        socketProvider.socket = IO.socket("ws://$ipText/routines", ioOptions)
                                         finish()
                                     }
                                 }

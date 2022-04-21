@@ -29,7 +29,7 @@ object ApplicationModule {
     fun provideSocket(
         preferences: SharedPreferences
     ): SocketProvider = SocketProvider(
-        IO.socket(preferences.getString("url", "ws://192.168.1.1") + "/routines", ioOptions)
+        IO.socket("ws://${preferences.getString("url", "192.168.1.1")}/routines", ioOptions)
     )
 
     @Singleton

@@ -18,7 +18,7 @@ class DriverViewModel @Inject constructor(
     private var currentY = 0.0
     private var currentZ = 0.0
     private val socket = IO.socket(
-        preferences.getString("url", "ws://192.168.1.1") + "/routines",
+        "ws://${preferences.getString("url", "192.168.1.1")}/routines",
         IO.Options.builder().setTransports(arrayOf("websocket"))
             .setAuth(mapOf("authorization" to "driver")).build()
     ).connect()

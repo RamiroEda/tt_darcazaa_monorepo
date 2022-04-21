@@ -42,12 +42,12 @@ class ConnectionViewModel @Inject constructor(
     private fun waitForConnection() = viewModelScope.launch {
         while (true){
             while (true){
-                println("Waiting for connection in ${preferences.getString("url", "ws://192.168.1.1")} ...")
+                println("Waiting for connection in ${preferences.getString("url", "192.168.1.1")} ...")
                 if(connectionRepository.tryConnect()) break
                 else delay(1000)
                 loading.value = false
             }
-            println("Connected in ${preferences.getString("url", "ws://192.168.1.1")}")
+            println("Connected in ${preferences.getString("url", "192.168.1.1")}")
             isConnected.value = true
             val syncingStatus = listenSyncingStatus()
             val hashes = listenToHashes()

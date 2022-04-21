@@ -1,5 +1,6 @@
 package mx.ipn.upiiz.darcazaa.ui.screens
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,14 +14,18 @@ import androidx.compose.material.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
+import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
 import mx.ipn.upiiz.darcazaa.ui.components.MainScreen
 import mx.ipn.upiiz.darcazaa.ui.components.NotConnectedCard
 import mx.ipn.upiiz.darcazaa.view_models.ConnectionViewModel
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+    @Inject lateinit var preferences: SharedPreferences
+    @Inject lateinit var socketProvider: SocketProvider
     private val connectionViewModel: ConnectionViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +38,10 @@ class MainActivity : AppCompatActivity() {
                             if(url != null){
                                 MainScreen()
                             }else{
-                                NotConnectedCard()
+                                NotConnectedCard(
+                                    preferences,
+                                    socketProvider
+                                )
                             }
                         }
                     }else{
