@@ -1,8 +1,5 @@
 #!/bin/bash
 cd ./server
-npm run build && npm start &
-
-sleep 10
-
+npm install
 cd ../mavlink_controller_server
-make run
+make install
