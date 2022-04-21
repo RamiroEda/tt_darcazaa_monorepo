@@ -27,6 +27,7 @@ export class RoutinesSocketService {
     currentMission: Routine | undefined;
     systemStatus: string | undefined;
     windspeed = 0;
+    streamUri: string | undefined;
 
     $onConnection(
         @Socket socket: SocketIO.Socket,
@@ -34,7 +35,7 @@ export class RoutinesSocketService {
     ) {
         console.log(`👋 New connection at ${socket.handshake.address}`);
 
-        if (socket.handshake.headers.authorization) {
+        if (socket.handshake.auth?.authorization == 'driver') {
             console.log(`🛣️ Driver connection`);
             session.set('is_driver', true);
         }
@@ -80,6 +81,9 @@ export class RoutinesSocketService {
         }
         if (this.location) {
             socket.emit('location', this.location);
+        }
+        if (this.streamUri) {
+            socket.emit('camera_stream_uri', this.streamUri);
         }
         socket.emit('current_mission', this.currentMission);
         socket.emit('hashes', await missionService.getHashes());
@@ -149,6 +153,31 @@ export class RoutinesSocketService {
         if (session.get('is_driver')) {
             return velocities;
         }
+    }
+
+    @Input('takeoff')
+    @Broadcast('takeoff')
+    takeoff(@SocketSession session: SocketSession) {
+        if (session.get('is_driver')) {
+            return;
+        }
+    }
+
+    @Input('land')
+    @Broadcast('land')
+    land(@SocketSession session: SocketSession) {
+        if (session.get('is_driver')) {
+            return;
+        }
+    }
+
+    @Input('camera_stream_uri')
+    @Broadcast('camera_stream_uri')
+    cameraStreamUri(@Args(0) uri: string) {
+        console.log(`📺 Stream URI at ${uri}`);
+
+        this.streamUri = uri;
+        return this.streamUri;
     }
 
     @Input('rotate')
