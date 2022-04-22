@@ -10,8 +10,18 @@ export class MissionService {
     async getAll(): Promise<Array<Routine & { waypoints: Waypoint[] }>> {
         const now = moment();
         const currentHour = now.hours() + now.minutes() / 60.0;
+        const currentDay = circularOffset({
+            number: now.day(),
+            offset: -1,
+            min: 0,
+            max: 7,
+        });
 
-        console.log(`ℹ️ ${now}  ${currentHour}  ${now.day()}`);
+        console.log(`ℹ️`, now, currentHour, currentDay);
+        console.log(
+            `ℹ️`,
+            (await this.prisma.routine.findMany()).map((it) => it.repeat),
+        );
 
         return this.prisma.routine.findMany({
             where: {
@@ -19,12 +29,7 @@ export class MissionService {
                     lte: currentHour,
                 },
                 repeat: {
-                    contains: `${circularOffset({
-                        number: now.day(),
-                        offset: -1,
-                        min: 0,
-                        max: 7,
-                    })}`,
+                    contains: `${currentDay}`,
                 },
                 executedAt: {
                     not: now.dayOfYear(),
