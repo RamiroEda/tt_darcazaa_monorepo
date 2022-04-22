@@ -72,6 +72,9 @@ class DroneCom:
     def on_system_status_update(self, attr_name: str, aux: any, status: SystemStatus):
         if(self.vehicle is None):
             return
+        
+        self.print("New status: %s", status.state)
+        
         self.send_message("system_status", {
             "status": status.state,
             "canceled": self.is_cancel
@@ -95,7 +98,7 @@ class DroneCom:
                 0,
                 269, 0, 0, 0, 0, 0, 0
             )
-        
+
     
     def on_video_stream_information_update(self, name: str, message: common.MAVLink_video_stream_information_message):
         self.send_message("camera_stream_uri", message.uri)

@@ -1,6 +1,0 @@
-make.exe --dry-run --always-make --keep-going --print-directory
-make.exe: se ingresa al directorio `c:/Github/tt_darcazaa_monorepo/mavlink_controller_server'
-poetry update && poetry install
- 
-make.exe: se sale del directorio `c:/Github/tt_darcazaa_monorepo/mavlink_controller_server'
- 
