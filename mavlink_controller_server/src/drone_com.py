@@ -92,7 +92,7 @@ class DroneCom:
             else:
                 self.send_message("status", MissionStatus.CANCELING.value)
 
-    def on_system_status_update(self, attr_name: str, status: SystemStatus):
+    def on_system_status_update(self, attr_name: str, aux: any, status: SystemStatus):
         if(self.vehicle is None):
             return
         
