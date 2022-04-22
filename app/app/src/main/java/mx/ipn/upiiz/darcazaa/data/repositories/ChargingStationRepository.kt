@@ -13,6 +13,7 @@ interface ChargingStationRepository {
     fun batteryStatus(): Flow<Battery>
     fun positionStatus(): Flow<LatLngAlt>
     fun currentRoutine(): Flow<RoutineWithWaypoints?>
+    fun videoUri(): Flow<String?>
     fun cancelRoutine()
     fun runRoutine(hash: String)
 }
@@ -73,6 +74,18 @@ class DroneSocketIORepository(
 
             if(routine is JSONObject){
                 trySend(routineRepository.get(routine.getInt("id")))
+            }else{
+                trySend(null)
+            }
+        }
+        awaitClose {  }
+    }
+
+    override fun videoUri(): Flow<String?> = callbackFlow {
+        socketProvider.socket.on("camera_stream_uri"){
+            val uri = it.firstOrNull()
+            if(uri is String?){
+                trySend(uri)
             }else{
                 trySend(null)
             }

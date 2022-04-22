@@ -28,8 +28,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.google.android.exoplayer2.MediaItem
 import dagger.hilt.android.AndroidEntryPoint
 import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
+import mx.ipn.upiiz.darcazaa.ui.components.VideoPlayer
+import mx.ipn.upiiz.darcazaa.ui.components.rememberExoPlayer
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
 import mx.ipn.upiiz.darcazaa.view_models.DriverViewModel
@@ -51,15 +54,31 @@ class DriverActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            val exoPlayer = rememberExoPlayer()
+
             DARCAZAATheme {
                 Scaffold(
-                    containerColor = Color.White
+                    containerColor = Color.Black
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         var isDrivingEnabled by remember {
                             mutableStateOf(false)
+                        }
+
+                        VideoPlayer(
+                            modifier = Modifier.fillMaxSize(),
+                            exoPlayer = exoPlayer
+                        )
+
+                        if (chargingStationViewModel.videoStreamUri.value != null) {
+                            Text(
+                                modifier = Modifier.align(Alignment.Center),
+                                text = "Esperando señal de video...",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White
+                            )
                         }
 
                         Box(
@@ -212,7 +231,7 @@ class DriverActivity : AppCompatActivity() {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             AnimatedVisibility(visible = isDrivingEnabled) {
-                                if(chargingStationViewModel.systemStatus.value == SystemStatus.FLYING){
+                                if (chargingStationViewModel.systemStatus.value == SystemStatus.FLYING) {
                                     CustomFab(
                                         icon = Icons.Rounded.FlightLand,
                                         onPress = {
@@ -220,8 +239,9 @@ class DriverActivity : AppCompatActivity() {
                                             driverViewModel.land()
                                         }
                                     )
-                                } else if(chargingStationViewModel.systemStatus.value == SystemStatus.IDLE
-                                    || chargingStationViewModel.systemStatus.value == SystemStatus.WAITING_FOR_WEATHER){
+                                } else if (chargingStationViewModel.systemStatus.value == SystemStatus.IDLE
+                                    || chargingStationViewModel.systemStatus.value == SystemStatus.WAITING_FOR_WEATHER
+                                ) {
                                     CustomFab(
                                         icon = Icons.Rounded.FlightTakeoff,
                                         onPress = {
@@ -236,7 +256,10 @@ class DriverActivity : AppCompatActivity() {
                                     .padding(16.dp)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(vertical = 4.dp, horizontal = 16.dp),
+                                    modifier = Modifier.padding(
+                                        vertical = 4.dp,
+                                        horizontal = 16.dp
+                                    ),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
@@ -248,9 +271,9 @@ class DriverActivity : AppCompatActivity() {
                                         checked = isDrivingEnabled,
                                         onCheckedChange = {
                                             isDrivingEnabled = it
-                                            if(it){
+                                            if (it) {
                                                 driverViewModel.setMode("GUIDED")
-                                            }else{
+                                            } else {
                                                 driverViewModel.setMode("AUTO")
                                             }
                                         }
@@ -258,6 +281,23 @@ class DriverActivity : AppCompatActivity() {
                                 }
                             }
                         }
+                    }
+                }
+            }
+            LaunchedEffect(key1 = exoPlayer) {
+                snapshotFlow { chargingStationViewModel.videoStreamUri.value }.collect {
+                    if (it != null) {
+                        exoPlayer.setMediaItem(
+                            MediaItem.Builder().setUri(it).setLiveConfiguration(
+                                MediaItem.LiveConfiguration.Builder().setMaxPlaybackSpeed(1.02f)
+                                    .build()
+                            ).build()
+                        )
+                        exoPlayer.prepare()
+                        exoPlayer.play()
+                    } else {
+                        exoPlayer.clearMediaItems()
+                        exoPlayer.stop()
                     }
                 }
             }

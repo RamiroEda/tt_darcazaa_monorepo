@@ -27,7 +27,7 @@ export class RoutinesSocketService {
     currentMission: Routine | undefined;
     systemStatus: string | undefined;
     windspeed = 0;
-    streamUri: string | undefined;
+    streamUri: string | undefined = "https://cdn.flowplayer.com/a30bd6bc-f98b-47bc-abf5-97633d4faea0/hls/de3f6ca7-2db3-4689-8160-0f574a5996ad/playlist.m3u8"; //TODO: ELIMINAR
 
     $onConnection(
         @Socket socket: SocketIO.Socket,

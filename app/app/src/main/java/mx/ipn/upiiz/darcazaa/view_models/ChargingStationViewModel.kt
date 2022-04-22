@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mx.ipn.upiiz.darcazaa.data.data_providers.LocalDatabase
@@ -26,6 +25,7 @@ class ChargingStationViewModel @Inject constructor(
     val position = mutableStateOf<LatLngAlt?>(null)
     val routines = mutableStateListOf<RoutineWithWaypoints>()
     val currentRoutine = mutableStateOf<RoutineWithWaypoints?>(null)
+    val videoStreamUri = mutableStateOf<String?>(null)
 
     private val routineRepository = localDatabase.routineRepository()
 
@@ -35,6 +35,7 @@ class ChargingStationViewModel @Inject constructor(
         listenPosition()
         listenRoutines()
         listenCurrentRoutine()
+        listenVideoStreamUri()
         emitData()
     }
 
@@ -48,6 +49,12 @@ class ChargingStationViewModel @Inject constructor(
             }catch (e: Exception){
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun listenVideoStreamUri() = viewModelScope.launch {
+        chargingStationRepository.videoUri().collect {
+            videoStreamUri.value = it
         }
     }
 
