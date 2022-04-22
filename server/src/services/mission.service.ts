@@ -1,3 +1,4 @@
+import { circularOffset } from '@/utils/array.utils';
 import { PrismaClient, Routine, Waypoint } from '@prisma/client';
 import { Injectable } from '@tsed/di';
 import moment from 'moment';
@@ -18,7 +19,12 @@ export class MissionService {
                     lte: currentHour,
                 },
                 repeat: {
-                    contains: `${now.day()}`,
+                    contains: `${circularOffset({
+                        number: now.day(),
+                        offset: -1,
+                        min: 0,
+                        max: 7,
+                    })}`,
                 },
                 executedAt: {
                     not: now.dayOfYear(),
