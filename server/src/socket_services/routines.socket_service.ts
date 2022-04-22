@@ -137,10 +137,16 @@ export class RoutinesSocketService {
     @Input('current_mission')
     @Broadcast('current_mission')
     async updateCurrentMission(@Args(0) currentMission: any) {
+        console.log(this.currentMission, currentMission);
+
         if (this.currentMission && !currentMission) {
             if (this.currentMission.repeat.length > 0) {
+                console.log('Deleting', this.currentMission.title);
+
                 await this.missionService.delete(this.currentMission.id);
             } else {
+                console.log('Marking as completed', this.currentMission.title);
+
                 await this.missionService.markCompleted(this.currentMission);
             }
         }

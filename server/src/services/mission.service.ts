@@ -53,6 +53,9 @@ export class MissionService {
                     },
                 ],
             },
+            orderBy: {
+                start: 'asc',
+            },
             include: {
                 waypoints: true,
             },
