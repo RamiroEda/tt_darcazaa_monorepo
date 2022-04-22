@@ -10,10 +10,12 @@ export class MissionService {
         const now = moment();
         const currentHour = now.hours() + now.minutes() / 60.0;
 
+        console.log(`ℹ️ ${now}  ${currentHour}  ${now.day()}`);
+
         return this.prisma.routine.findMany({
             where: {
                 start: {
-                    lt: currentHour,
+                    lte: currentHour,
                 },
                 repeat: {
                     contains: `${now.day()}`,

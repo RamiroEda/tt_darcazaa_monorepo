@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.Card
@@ -17,11 +18,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FlightLand
 import androidx.compose.material.icons.rounded.FlightTakeoff
 import androidx.compose.material.icons.rounded.GpsFixed
-import androidx.compose.material3.*
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
@@ -31,17 +36,23 @@ import com.google.maps.android.SphericalUtil
 import dagger.hilt.android.AndroidEntryPoint
 import mx.ipn.upiiz.darcazaa.data.models.RoutineWithWaypoints
 import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
+import mx.ipn.upiiz.darcazaa.data.models.viewModelFactory
+import mx.ipn.upiiz.darcazaa.data.repositories.HistoryRepository
 import mx.ipn.upiiz.darcazaa.ui.components.BatteryComponent
 import mx.ipn.upiiz.darcazaa.ui.components.MapView
 import mx.ipn.upiiz.darcazaa.ui.components.ValueDisplay
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
 import mx.ipn.upiiz.darcazaa.utils.*
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
+import mx.ipn.upiiz.darcazaa.view_models.HistoryViewModel
+import javax.inject.Inject
 import kotlin.math.ceil
 
 @AndroidEntryPoint
 class RoutineInfoActivity : AppCompatActivity() {
     private val chargingStationViewModel: ChargingStationViewModel by viewModels()
+    private lateinit var historyViewModel: HistoryViewModel
+    @Inject lateinit var historyRepository: HistoryRepository
 
     @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +64,16 @@ class RoutineInfoActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        historyViewModel = ViewModelProvider(
+            this,
+            viewModelFactory {
+                HistoryViewModel(
+                    routineWithWaypoints.routine.hash,
+                    historyRepository
+                )
+            }
+        ).get(HistoryViewModel::class.java)
 
         val polygon = PolyUtil.decode(routineWithWaypoints.routine.polygon)
 
@@ -67,7 +88,8 @@ class RoutineInfoActivity : AppCompatActivity() {
                 BottomSheetScaffold(
                     sheetContent = {
                         RideInfo(
-                            routineWithWaypoints = routineWithWaypoints
+                            routineWithWaypoints = routineWithWaypoints,
+                            historyViewModel = historyViewModel
                         )
                     },
                     sheetShape = RoundedCornerShape(
@@ -175,7 +197,8 @@ class RoutineInfoActivity : AppCompatActivity() {
 
 @Composable
 fun RideInfo(
-    routineWithWaypoints: RoutineWithWaypoints
+    routineWithWaypoints: RoutineWithWaypoints,
+    historyViewModel: HistoryViewModel
 ) {
     val polygon = PolyUtil.decode(routineWithWaypoints.routine.polygon)
     val waypoints = routineWithWaypoints.waypoints.map {
@@ -203,6 +226,11 @@ fun RideInfo(
                     text = "Historial",
                     style = MaterialTheme.typography.headlineLarge
                 )
+            }
+            items(historyViewModel.history){
+                Card {
+                    Text(text = it.executedAt.toString())
+                }
             }
         }
     }

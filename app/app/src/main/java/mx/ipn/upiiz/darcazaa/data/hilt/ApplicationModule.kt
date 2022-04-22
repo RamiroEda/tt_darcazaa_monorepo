@@ -11,10 +11,9 @@ import mx.ipn.upiiz.darcazaa.data.data_providers.ioOptions
 import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
-import mx.ipn.upiiz.darcazaa.data.repositories.ChargingStationRepository
-import mx.ipn.upiiz.darcazaa.data.repositories.ConnectionRepository
-import mx.ipn.upiiz.darcazaa.data.repositories.ConnectionSocketIORepository
-import mx.ipn.upiiz.darcazaa.data.repositories.DroneSocketIORepository
+import mx.ipn.upiiz.darcazaa.data.repositories.*
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -51,4 +50,21 @@ object ApplicationModule {
     fun provideLocalDatabase(
         app: Application
     ) = LocalDatabase.getInstance(app)
+
+    @Singleton
+    @Provides
+    fun provideRetrofitBuilder(
+        app: Application
+    ) = Retrofit.Builder()
+        .addConverterFactory(MoshiConverterFactory.create())
+
+    @Singleton
+    @Provides
+    fun provideHistoryRepository(
+        builder: Retrofit.Builder,
+        preferences: UserPreferences
+    ): HistoryRepository = HistoryRetrofitRepository(
+        preferences,
+        builder
+    )
 }
