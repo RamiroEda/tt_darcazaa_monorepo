@@ -50,7 +50,7 @@ class DroneCom:
             "heading": self.vehicle.heading
         })
 
-    def on_battery_update(self, attr_name: str, battery: Battery):
+    def on_battery_update(self, attr_name: str, aux: any, battery: Battery):
         if(self.vehicle is None):
             return
         self.send_message("battery", {
@@ -77,7 +77,7 @@ class DroneCom:
             self.cancel_mission()
     
 
-    def on_commands_update(self, attr_name: str, commands: CommandSequence):
+    def on_commands_update(self, attr_name: str, aux: any, commands: CommandSequence):
         if(self.vehicle is None):
             return
         if(commands.next == commands.count):
