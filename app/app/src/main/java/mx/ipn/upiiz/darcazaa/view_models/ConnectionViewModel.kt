@@ -31,7 +31,6 @@ class ConnectionViewModel @Inject constructor(
 
     private fun listenUrlChanges() = viewModelScope.launch {
         kotlin.runCatching {
-            println("Listening url changes")
             connectionRepository.urlChanges().collect {
                 url.value = it
             }
@@ -87,6 +86,7 @@ class ConnectionViewModel @Inject constructor(
     private fun listenSyncingStatus() = viewModelScope.launch {
         kotlin.runCatching {
             connectionRepository.syncingStatus().collect {
+                println(it)
                 syncingStatus.value = it
                 if (it == SyncingStatus.ERROR){
                     delay(5000)

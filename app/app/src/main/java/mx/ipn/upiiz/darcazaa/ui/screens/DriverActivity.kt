@@ -293,7 +293,6 @@ class DriverActivity : AppCompatActivity() {
                                     .build()
                             ).build()
                         )
-                        println(it)
                         exoPlayer.prepare()
                         exoPlayer.play()
                     } else {

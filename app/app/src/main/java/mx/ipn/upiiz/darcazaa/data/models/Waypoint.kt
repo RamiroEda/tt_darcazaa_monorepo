@@ -10,7 +10,7 @@ import androidx.room.ForeignKey.CASCADE
     foreignKeys = [
         ForeignKey(
             entity = Routine::class,
-            parentColumns = arrayOf("id"),
+            parentColumns = arrayOf("hash"),
             childColumns = arrayOf("routine_hash"),
             onDelete = CASCADE
         )

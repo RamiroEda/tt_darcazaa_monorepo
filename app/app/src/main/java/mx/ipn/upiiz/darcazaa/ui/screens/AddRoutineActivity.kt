@@ -146,13 +146,13 @@ fun RoutineBasicInfo(
                                     TextStyle.FULL_STANDALONE,
                                     Locale.getDefault()
                                 ),
-                                isChecked = addRoutineViewModel.repeat.value.contains(index.toChar()),
+                                isChecked = addRoutineViewModel.repeat.value.contains("$index"),
                                 onClick = {
-                                    if (addRoutineViewModel.repeat.value.contains(index.toChar())) {
+                                    if (addRoutineViewModel.repeat.value.contains("$index")) {
                                         addRoutineViewModel.repeat.value =
-                                            addRoutineViewModel.repeat.value.filterNot { it.toString() == index.toString() }
+                                            addRoutineViewModel.repeat.value.filterNot { char -> "$char" == "$index" }
                                     } else {
-                                        addRoutineViewModel.repeat.value += index.toString()
+                                        addRoutineViewModel.repeat.value += "$index"
                                     }
                                 },
                                 isCheckable = true,

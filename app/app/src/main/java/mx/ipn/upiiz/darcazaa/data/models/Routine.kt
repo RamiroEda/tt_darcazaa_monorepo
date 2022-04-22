@@ -4,7 +4,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.*
 
-@Entity(tableName = "routines")
+@Entity(tableName = "routines", indices = [Index(value = ["hash"], unique = true)])
 data class Routine(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
@@ -20,7 +20,7 @@ data class Routine(
     val polygon: String,
     @ColumnInfo(name = "hash")
     val hash: String = this.hashCode().toUInt().toString(16),
-): Parcelable{
+) : Parcelable {
 
 
     constructor(parcel: Parcel) : this(
@@ -79,7 +79,7 @@ data class RoutineWithWaypoints(
         entityColumn = "routine_hash"
     )
     val waypoints: List<Waypoint>
-): Parcelable {
+) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readParcelable(Routine::class.java.classLoader)!!,
         parcel.createTypedArrayList(Waypoint)!!

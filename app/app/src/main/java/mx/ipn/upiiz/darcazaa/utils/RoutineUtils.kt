@@ -4,8 +4,7 @@ import mx.ipn.upiiz.darcazaa.data.models.Waypoint
 import java.time.DayOfWeek
 
 fun String.toDays(): List<DayOfWeek> = map {
-    println("$it, ${it.code}")
-    DayOfWeek.of(it.digitToInt())
+    DayOfWeek.of(it.digitToInt() + 1)
 }.filterNotNull()
 
 fun Double.toHour(): String {

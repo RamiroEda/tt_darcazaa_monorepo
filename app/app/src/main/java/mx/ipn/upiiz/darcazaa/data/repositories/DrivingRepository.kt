@@ -19,7 +19,6 @@ class DrivingSocketIORepository(
     private val socket: Socket
 ) : DrivingRepository {
     override fun setVelocity(x: Double, y: Double, z: Double) {
-        println("$x $y $z")
         socket.emit("translate", JSONObject(mapOf(
             "x" to x * VERTICAL_VELOCITY_FACTOR,
             "y" to y * HORIZONTAL_VELOCITY_FACTOR,
