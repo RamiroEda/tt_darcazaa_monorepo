@@ -23,13 +23,16 @@ export class MissionService {
             (await this.prisma.routine.findMany()).map((it) => it.repeat),
         );
 
+        const elements: Array<{ id: number }> = await this.prisma
+            .$queryRaw`SELECT id FROM Routine WHERE repeat = '' OR repeat LIKE '%${currentDay}%'`;
+
         return this.prisma.routine.findMany({
             where: {
+                id: {
+                    in: elements.map((it) => it.id),
+                },
                 start: {
                     lte: currentHour,
-                },
-                repeat: {
-                    contains: `${currentDay}`,
                 },
                 executedAt: {
                     not: now.dayOfYear(),
