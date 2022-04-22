@@ -322,6 +322,7 @@ class DroneCom:
             cmds = self.vehicle.commands
             
         cmds.clear()
+        cmds.next = 0
         self.print("🏠 Home at %s" % home)
         self.print("✈️ Generating mission")
 
@@ -343,7 +344,6 @@ class DroneCom:
         ))
 
         self.print("⌛ Uploading mission")
-        cmds.next = 0
         cmds.upload()
         self.print("✅ Mission Uploaded. Commands: %i. Starting at: %i." % (cmds.count, cmds.next))
         
