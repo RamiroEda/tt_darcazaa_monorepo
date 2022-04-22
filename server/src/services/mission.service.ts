@@ -89,7 +89,9 @@ export class MissionService {
     }) {
         this.prisma.$transaction([
             ...data.routines.map((data) =>
-                this.prisma.routine.create({ data }),
+                this.prisma.routine.create({
+                    data: { ...data, repeat: data.repeat.toString() },
+                }),
             ),
             ...data.waypoints.map((data) =>
                 this.prisma.waypoint.create({ data }),

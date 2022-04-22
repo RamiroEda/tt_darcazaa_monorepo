@@ -72,7 +72,7 @@ class DriverActivity : AppCompatActivity() {
                             exoPlayer = exoPlayer
                         )
 
-                        if (chargingStationViewModel.videoStreamUri.value != null) {
+                        if (chargingStationViewModel.videoStreamUri.value == null) {
                             Text(
                                 modifier = Modifier.align(Alignment.Center),
                                 text = "Esperando señal de video...",

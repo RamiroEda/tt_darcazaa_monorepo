@@ -17,10 +17,11 @@ data class Routine(
     @ColumnInfo(name = "is_synced")
     val isSynced: Boolean,
     @ColumnInfo(name = "polygon")
-    val polygon: String
+    val polygon: String,
+    @ColumnInfo(name = "hash")
+    val hash: String = this.hashCode().toUInt().toString(16),
 ): Parcelable{
-    @Ignore
-    val hash = this.hashCode().toUInt().toString(16)
+
 
     constructor(parcel: Parcel) : this(
         parcel.readInt(),

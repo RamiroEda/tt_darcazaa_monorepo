@@ -2,7 +2,6 @@ package mx.ipn.upiiz.darcazaa.ui.screens
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -15,9 +14,6 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,11 +32,8 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.ktx.addCircle
 import com.google.maps.android.ktx.addPolygon
-import com.google.maps.android.ktx.addPolyline
 import dagger.hilt.android.AndroidEntryPoint
 import mx.ipn.upiiz.darcazaa.R
-import mx.ipn.upiiz.darcazaa.data.models.areaTsp
-import mx.ipn.upiiz.darcazaa.data.models.generateGrid
 import mx.ipn.upiiz.darcazaa.ui.components.Chip
 import mx.ipn.upiiz.darcazaa.ui.components.MapView
 import mx.ipn.upiiz.darcazaa.ui.components.TimePickerDialog
@@ -72,7 +65,7 @@ class AddRoutineActivity : AppCompatActivity() {
                 }
 
                 SideEffect {
-                    if (insertSuccess){
+                    if (insertSuccess) {
                         finish()
                     }
                 }
@@ -124,7 +117,7 @@ fun RoutineBasicInfo(
                     checkedIcon = R.drawable.ic_round_check_24,
                     onClick = {
                         addRoutineViewModel.isSingleUse.value = true
-                        addRoutineViewModel.repeat.value = 0
+                        addRoutineViewModel.repeat.value = ""
                     }
                 )
                 Chip(
@@ -153,16 +146,14 @@ fun RoutineBasicInfo(
                                     TextStyle.FULL_STANDALONE,
                                     Locale.getDefault()
                                 ),
-                                isChecked = addRoutineViewModel.repeat.value.and(
-                                    (1).shl(
-                                        index
-                                    )
-                                ) != 0,
+                                isChecked = addRoutineViewModel.repeat.value.contains(index.toChar()),
                                 onClick = {
-                                    addRoutineViewModel.repeat.value =
-                                        addRoutineViewModel.repeat.value.xor(
-                                            (1).shl(index)
-                                        )
+                                    if (addRoutineViewModel.repeat.value.contains(index.toChar())) {
+                                        addRoutineViewModel.repeat.value =
+                                            addRoutineViewModel.repeat.value.filterNot { it.toString() == index.toString() }
+                                    } else {
+                                        addRoutineViewModel.repeat.value += index.toString()
+                                    }
                                 },
                                 isCheckable = true,
                                 checkedIcon = R.drawable.ic_round_check_24,
@@ -185,9 +176,12 @@ fun RoutineBasicInfo(
                     readOnly = true
                 )
                 Box(
-                   modifier = Modifier.clickable {
-                       showTimePicker = true
-                   }.fillMaxWidth().height(64.dp)
+                    modifier = Modifier
+                        .clickable {
+                            showTimePicker = true
+                        }
+                        .fillMaxWidth()
+                        .height(64.dp)
                 ) {}
             }
 
@@ -196,9 +190,9 @@ fun RoutineBasicInfo(
                     .align(Alignment.CenterHorizontally)
                     .padding(top = 48.dp),
                 onClick = {
-                    if(
+                    if (
                         addRoutineViewModel.title.value.isNotBlank()
-                    ){
+                    ) {
                         addRoutineViewModel.section.value = true
                     }
                 }
@@ -220,7 +214,7 @@ fun RoutineBasicInfo(
             }
         }
     }
-    if(showTimePicker){
+    if (showTimePicker) {
         TimePickerDialog(
             onDismissRequest = {
                 showTimePicker = false
@@ -250,7 +244,7 @@ fun SelectArea(
             Column(
                 horizontalAlignment = Alignment.End
             ) {
-                if (addRoutineViewModel.selectedPolygon.isNotEmpty()){
+                if (addRoutineViewModel.selectedPolygon.isNotEmpty()) {
                     ExtendedFloatingActionButton(
                         onClick = {
                             addRoutineViewModel.undoPoint()
@@ -268,12 +262,12 @@ fun SelectArea(
                 ExtendedFloatingActionButton(
                     modifier = Modifier.padding(top = 8.dp),
                     onClick = {
-                        mapView.getMapAsync{
+                        mapView.getMapAsync {
                             addRoutineViewModel.addPoint(it.cameraPosition.target)
                         }
                     },
                     icon = {
-                           Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
+                        Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
                     },
                     text = {
                         Text(text = "Agregar perimetro")
@@ -285,7 +279,7 @@ fun SelectArea(
                 ExtendedFloatingActionButton(
                     modifier = Modifier.padding(top = 16.dp),
                     onClick = {
-                        if(addRoutineViewModel.selectedPolygon.size >= 3){
+                        if (addRoutineViewModel.selectedPolygon.size >= 3) {
                             addRoutineViewModel.save()
                         }
                     },
@@ -305,37 +299,48 @@ fun SelectArea(
                 isCenterPointEnabled = true,
                 mapFinish = {
                     it.mapType = GoogleMap.MAP_TYPE_SATELLITE
-                    context.permissionsBuilder(Manifest.permission.ACCESS_FINE_LOCATION).build().send { res ->
-                        if(res.allGranted()){
-                            it.isMyLocationEnabled = true
-                            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-                            fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
-                                it.moveCamera(
-                                    CameraUpdateFactory.newLatLngZoom(
-                                        LatLng(
-                                            loc.latitude,
-                                            loc.longitude
-                                        ), 17f
+                    context.permissionsBuilder(Manifest.permission.ACCESS_FINE_LOCATION).build()
+                        .send { res ->
+                            if (res.allGranted()) {
+                                it.isMyLocationEnabled = true
+                                val fusedLocationClient =
+                                    LocationServices.getFusedLocationProviderClient(context)
+                                fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
+                                    it.moveCamera(
+                                        CameraUpdateFactory.newLatLngZoom(
+                                            LatLng(
+                                                loc.latitude,
+                                                loc.longitude
+                                            ), 17f
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
-                    }
                 }
-            ){
+            ) {
                 addRoutineViewModel.selectedPolygon.let { polygon ->
-                    if (polygon.isNotEmpty()){
+                    if (polygon.isNotEmpty()) {
                         it.addPolygon {
                             addAll(polygon)
-                            fillColor((colorScheme.primary.toArgb().toLong() or 0xFF000000 and 0x55FFFFFF).toInt())
-                            strokeColor((colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt())
+                            fillColor(
+                                (colorScheme.primary.toArgb()
+                                    .toLong() or 0xFF000000 and 0x55FFFFFF).toInt()
+                            )
+                            strokeColor(
+                                (colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt()
+                            )
                         }
                         polygon.forEach { pos ->
                             it.addCircle {
                                 center(pos)
                                 radius(3.0)
-                                strokeColor((colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt())
-                                fillColor((colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt())
+                                strokeColor(
+                                    (colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt()
+                                )
+                                fillColor(
+                                    (colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt()
+                                )
                             }
                         }
                     }

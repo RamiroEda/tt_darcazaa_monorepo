@@ -3,13 +3,9 @@ package mx.ipn.upiiz.darcazaa.utils
 import mx.ipn.upiiz.darcazaa.data.models.Waypoint
 import java.time.DayOfWeek
 
-fun Int.toDays(): List<DayOfWeek> = List(7){
-    val mask = (1).shl(it)
-    if(this.and(mask) != 0) {
-        DayOfWeek.of(it+1)
-    }else{
-        null
-    }
+fun String.toDays(): List<DayOfWeek> = map {
+    println("$it, ${it.code}")
+    DayOfWeek.of(it.digitToInt())
 }.filterNotNull()
 
 fun Double.toHour(): String {

@@ -24,7 +24,7 @@ class AddRoutineViewModel @Inject constructor(
     val title = mutableStateOf("")
     val hour = mutableStateOf(12.0)
     val isSingleUse = mutableStateOf(true)
-    val repeat  = mutableStateOf(0)
+    val repeat  = mutableStateOf("")
     var section = mutableStateOf(false)
     val selectedPolygon = mutableStateListOf<LatLng>()
     val insertSuccess = mutableStateOf(false)
@@ -40,21 +40,22 @@ class AddRoutineViewModel @Inject constructor(
     fun save() = viewModelScope.launch {
         kotlin.runCatching {
             withContext(Dispatchers.Default){
-                val routineId = routineRepository.addRoutine(Routine(
+                val routine = Routine(
                     0,
                     hour.value,
                     repeat.value,
                     title.value,
                     false,
                     PolyUtil.encode(selectedPolygon)
-                ))
+                )
+                routineRepository.addRoutine(routine)
                 routineRepository.addWaypoints(areaTsp(selectedPolygon).mapIndexed { index, latLng ->
                     Waypoint(
                         0,
                         index,
                         latLng.latitude,
                         latLng.longitude,
-                        routineId.toInt()
+                        routine.hash
                     )
                 })
             }
