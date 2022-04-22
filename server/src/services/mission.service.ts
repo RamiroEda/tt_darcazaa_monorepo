@@ -17,17 +17,41 @@ export class MissionService {
             max: 7,
         });
 
-        const elements = await this.prisma.$queryRawUnsafe<
-            Array<{ id: number }>
-        >(
-            `SELECT id FROM Routine WHERE (repeat = '' OR repeat LIKE '%${currentDay}%') AND executedAt != ${now.dayOfYear()} AND start < ${currentHour};`,
-        );
-
         return this.prisma.routine.findMany({
             where: {
-                id: {
-                    in: elements.map((it) => it.id),
-                },
+                AND: [
+                    {
+                        OR: [
+                            {
+                                repeat: '',
+                            },
+                            {
+                                repeat: {
+                                    contains: `${currentDay}`,
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        start: {
+                            lte: currentHour,
+                        },
+                    },
+                    {
+                        OR: [
+                            {
+                                executedAt: {
+                                    not: {
+                                        equals: now.dayOfYear(),
+                                    },
+                                },
+                            },
+                            {
+                                executedAt: null,
+                            },
+                        ],
+                    },
+                ],
             },
             include: {
                 waypoints: true,
