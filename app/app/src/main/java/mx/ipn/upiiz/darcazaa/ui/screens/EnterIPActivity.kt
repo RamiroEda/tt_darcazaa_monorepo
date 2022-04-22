@@ -28,6 +28,7 @@ import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
+import mx.ipn.upiiz.darcazaa.utils.isValidIP
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -69,7 +70,7 @@ class EnterIPActivity : AppCompatActivity() {
                             Button(
                                 modifier = Modifier.padding(top = 16.dp),
                                 onClick = {
-                                    if(ipText.matches(Regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!\$)|\$)){4}\$"))){
+                                    if(ipText.isValidIP()){
                                         preferences.set(PreferenceKeys.Url, ipText)
                                         socketProvider.socket = IO.socket("ws://$ipText/routines", ioOptions)
                                         finish()

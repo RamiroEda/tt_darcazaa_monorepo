@@ -21,6 +21,7 @@ import mx.ipn.upiiz.darcazaa.data.models.BarcodeTypes
 import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
+import mx.ipn.upiiz.darcazaa.utils.isValidIP
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +30,7 @@ fun NotConnectedCard(
     socketProvider: SocketProvider
 ) {
     val scannerContract = rememberLauncherForActivityResult(contract = QRCodeContract()){
-        if(it != null && it.matches(Regex("^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)(\\.(?!\$)|\$)){4}\$"))){
+        if(it != null && it.isValidIP()){
             preferences.set(PreferenceKeys.Url, it)
             socketProvider.socket = IO.socket("ws://$it/routines", ioOptions)
         }

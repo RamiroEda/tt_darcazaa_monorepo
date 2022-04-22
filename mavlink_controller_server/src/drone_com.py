@@ -126,10 +126,18 @@ class DroneCom:
         self.vehicle.send_mavlink(self.vehicle.message_factory.command_long_encode(
             0, 0,
             mavutil.mavlink.MAV_CMD_CONDITION_YAW,
-            0, 1, 0, direction, 1, 0, 0, 0))
+            0, 3, 0, direction, 1, 0, 0, 0))
         
     def set_mode(self, mode: str):
         self.vehicle.mode = VehicleMode(mode)
+        
+        self.print("⚙️ Mode changed: %s" % mode)
+        
+        if(mode == "AUTO"):
+            self.print("✈️ Current command: %i. Total commands: %i" % (self.vehicle.commands.next, self.vehicle.commands.count))
+        
+        if mode == "AUTO" and self.vehicle.commands.count == 0:
+            self.land()
         
     def set_windspeed(self, speed: float):
         self.windspeed = speed
@@ -209,7 +217,28 @@ class DroneCom:
     def land(self):
         if(self.vehicle.system_status.state != "ACTIVE"):
             return
-        self.vehicle.mode = VehicleMode("LAND")
+        
+        self.vehicle.commands.download()
+        self.vehicle.commands.wait_ready()
+        
+        home = self.vehicle.home_location
+        
+        if home is not None:
+            cmds = self.vehicle.commands
+            
+            cmds.add(Command(
+                0, 0, 0,
+                mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                mavutil.mavlink.MAV_CMD_NAV_LAND,
+                0, 0,
+                0, 0, 0, 0, home.lat, home.lon, DRONE_ALTITUDE
+            ))
+            
+            self.vehicle.commands.next = 0
+            self.vehicle.commands.upload()
+            
+            self.vehicle.mode = VehicleMode("AUTO")
+        
     
     def arm_and_takeoff(self):
         self.print("☑️ Basic pre-arm checks")

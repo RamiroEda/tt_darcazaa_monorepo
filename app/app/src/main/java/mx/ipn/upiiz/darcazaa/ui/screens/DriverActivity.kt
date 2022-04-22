@@ -17,7 +17,6 @@ import androidx.compose.material.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.consumeAllChanges
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
@@ -35,7 +33,9 @@ import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
 import mx.ipn.upiiz.darcazaa.view_models.DriverViewModel
-import kotlin.math.*
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 val JOYSTICK_SIZE = 168.dp
 val JOYSTICK_BALL_SIZE = 56.dp
@@ -124,7 +124,7 @@ class DriverActivity : AppCompatActivity() {
                                                 )
                                             },
                                             onDrag = { change, dragAmount ->
-                                                change.consumeAllChanges()
+                                                change.consume()
                                                 offsetAbsoluteX += dragAmount.x
                                                 offsetAbsoluteY += dragAmount.y
 
