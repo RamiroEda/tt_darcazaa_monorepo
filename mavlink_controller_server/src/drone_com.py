@@ -64,7 +64,7 @@ class DroneCom:
             timediff = datetime.now() - start
             leveldiff = battery.level - level
             
-            if leveldiff == 0:
+            if timediff.seconds == 0:
                 return
             
             discharge_speed = leveldiff / timediff.seconds
@@ -79,7 +79,7 @@ class DroneCom:
             
             time_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location.global_frame) / self.vehicle.airspeed
                         
-            if until_discharge <= time_to_home:
+            if until_discharge <= time_to_home and not self.is_cancel:
                 self.cancel_mission()
     
 
