@@ -8,7 +8,7 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
  # Este programa fue construido para i386-pc-mingw32
  
 
-# Base de datos del Make, mostrada en Thu Apr 21 19:23:34 2022
+# Base de datos del Make, mostrada en Thu Apr 21 19:30:50 2022
 
 # Variables
 
@@ -32,8 +32,7 @@ HOMEDRIVE = C:
 ^D = $(patsubst %/,%,$(dir $^))
 # makefile
 CURDIR := c:/Github/tt_darcazaa_monorepo/mavlink_controller_server
-# por defecto 
-
+# por defecto
 SHELL := C:/cygwin64/bin/sh.exe
 # entorno
 WINDIR = C:\Windows
@@ -46,8 +45,6 @@ PATHEXT = .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
 # makefile (de `makefile', l�nea 1):
 MAKEFILE_LIST :=  makefile
 # entorno
-FPS_BROWSER_USER_PROFILE_STRING = Default
-# entorno
 TMP = C:\Users\ramir\AppData\Local\Temp
 # entorno
 VSCODE_VERBOSE_LOGGING = true
@@ -56,11 +53,12 @@ PROGRAMW6432 = C:\Program Files
 # entorno
 PROGRAMDATA = C:\ProgramData
 # entorno
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-af2584e5-cdb8-47a0-9773-a6a67bbeeb90-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-5aa947da-7226-44ac-b81d-3be5b9723f42-sock
 # entorno
 VSCODE_CWD = C:\Users\ramir\AppData\Local\Programs\Microsoft VS Code
 # entorno
-PATH = C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Java\jdk-17.0.1\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Users\ramir\AppData\Local\Android\Sdk\cmdline-tools\latest\bin;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\ramir\AppData\Local\Android\Sdk\platform-tools;C:\Program Files (x86)\GnuWin32\bin;C:\cygwin64\bin;;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Program Files\nodejs\;C:\Users\ramir\.poetry\bin;C:\Users\ramir\AppData\Local\Programs\Python\Python310\Scripts\;C:\Users\ramir\AppData\Local\Programs\Python\Python310\;C:\Users\ramir\AppData\Local\Programs\Python\Launcher\;C:\Users\ramir\AppData\Local\Microsoft\WindowsApps;C:\Users\ramir\AppData\Local\GitHubDesktop\bin;C:\Users\ramir\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\heroku\bin;C:\Users\ramir\AppData\Roaming\npm
+PATH = C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files\Java\jdk-17.0.1\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Users\ramir\AppData\Local\Android\Sdk\cmdline-t 
+ools\latest\bin;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\ramir\AppData\Local\Android\Sdk\platform-tools;C:\Program Files (x86)\GnuWin32\bin;C:\cygwin64\bin;;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Program Files\nodejs\;C:\Users\ramir\.poetry\bin;C:\Users\ramir\AppData\Local\Programs\Python\Python310\Scripts\;C:\Users\ramir\AppData\Local\Programs\Python\Python310\;C:\Users\ramir\AppData\Local\Programs\Python\Launcher\;C:\Users\ramir\AppData\Local\Microsoft\WindowsApps;C:\Users\ramir\AppData\Local\GitHubDesktop\bin;C:\Users\ramir\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\heroku\bin;C:\Users\ramir\AppData\Roaming\npm
 # entorno
 COMMONPROGRAMW6432 = C:\Program Files\Common Files
 # entorno
@@ -82,7 +80,7 @@ NODE_OPTIONS =
 # autom�tica/o
 %F = $(notdir $%)
 # entorno
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_23140_MTRSDEWBTQYDFOZH
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_10376_CXKLBZPEXAKATSWI
 # entorno
 VSCODE_PIPE_LOGGING = true
 # entorno
@@ -190,13 +188,11 @@ LANG = C
 # entorno
 PROCESSOR_LEVEL = 6
 # entorno
-FPS_BROWSER_APP_PROFILE_STRING = Internet Explorer
-# entorno
-VSCODE_PID = 23140
+VSCODE_PID = 10376
 # entorno
 USERDOMAIN_ROAMINGPROFILE = PC
 # estad�sticas del conjunto de variables de la tabla de hash:
-# Carga=91/1024=9%, Rehash=0, Colisiones=9/110=8%
+# Carga=89/1024=9%, Rehash=0, Colisiones=9/108=8%
 
 # Valores de variables espec�ficas al patr�n
 
@@ -221,14 +217,14 @@ USERDOMAIN_ROAMINGPROFILE = PC
 # C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR (llave C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR, mtime 1636777590): 5 archivos, no imposibilidades.
 # C:\Program Files (x86)\GnuWin32\bin (llave C:/Program Files (x86)/GnuWin32/bin, mtime 1641706410): 5 archivos, no imposibilidades.
 
- 
 # 3773 archivos, no imposibilidades en 16 directorios.
 
 # Reglas impl�citas.
 
 # No hay reglas impl�citas.
 
-# Archivos
+# Arch 
+ivos
 
 # No es un objetivo:
 all:
@@ -292,10 +288,7 @@ install:
 	poetry update && poetry install
 	
 
-# estad�sticas d 
-make.exe: *** No hay ninguna regla para construir el objetivo `all'.  Alto.
-
-e la tabla de hash de los archivos:
+# estad�sticas de la tabla de hash de los archivos:
 # Carga=8/1024=1%, Rehash=0, Colisiones=0/19=0%
 # Rutas de b�squeda VPATH
 
@@ -308,6 +301,8 @@ e la tabla de hash de los archivos:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Se termina la base de datos de Make en Thu Apr 21 19:23:34 2022
+# Se termina la base de datos de Make en Thu Apr 21 19:30:50 2022
 
  
+make.exe: *** No hay ninguna regla para construir el objetivo `all'.  Alto.
+

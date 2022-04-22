@@ -131,9 +131,6 @@ class DroneCom:
             0, 3, 0, direction, 1, 0, 0, 0))
         
     def clear_commands(self):
-        self.vehicle.commands.download()
-        self.vehicle.commands.wait_ready()
-        
         cmds = self.vehicle.commands
         
         cmds.clear()
