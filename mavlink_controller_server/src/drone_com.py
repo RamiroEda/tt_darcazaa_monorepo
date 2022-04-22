@@ -63,18 +63,24 @@ class DroneCom:
             (start, level) = self.vehicle_start_mission_battery
             timediff = datetime.now() - start
             leveldiff = battery.level - level
+            
+            if leveldiff == 0:
+                return
+            
             discharge_speed = leveldiff / timediff.seconds
+            
+            if discharge_speed == 0:
+                return
             
             until_discharge = battery.level - 5 / discharge_speed
             
+            if self.vehicle.airspeed == 0:
+                return
+            
             time_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location.global_frame) / self.vehicle.airspeed
-            
-            self.print("Discharge rate: %f. Until discharge: %fs. Time to home: %fs." % (discharge_speed, until_discharge, time_to_home))
-            
+                        
             if until_discharge <= time_to_home:
                 self.cancel_mission()
-        elif battery.level < MINIMUM_BATTERY and self.vehicle.commands.next < self.vehicle.commands.count:
-            self.cancel_mission()
     
 
     def on_commands_update(self, attr_name: str, aux: any, commands: CommandSequence):
