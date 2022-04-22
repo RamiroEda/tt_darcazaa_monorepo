@@ -342,9 +342,9 @@ class DroneCom:
         ))
 
         self.print("⌛ Uploading mission")
-        self.vehicle.commands.next = 0
-        self.vehicle.commands.upload()
-        self.print("✅ Mission Uploaded")
+        cmds.next = 0
+        cmds.upload()
+        self.print("✅ Mission Uploaded. Commands: %i. Starting at: %i." % (cmds.count, cmds.next))
         
     def distance_between_locations(self, loc1: LocationGlobal, loc2: LocationGlobal) -> float:
         return geopy.distance.geodesic((loc1.lat, loc1.lon), (loc2.lat, loc2.lon)).meters
