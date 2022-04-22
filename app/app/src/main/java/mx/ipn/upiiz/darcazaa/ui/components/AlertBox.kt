@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -74,7 +75,10 @@ fun AlertBox(
                     onClick = {
                         preferences.remove(PreferenceKeys.Url)
                         socketProvider.socket.disconnect()
-                    }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color.White
+                    )
                 ) {
                     Text(text = "DESCONECTAR")
                 }

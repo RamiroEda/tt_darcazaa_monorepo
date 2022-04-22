@@ -8,7 +8,7 @@ make.exe all --print-data-base --no-builtin-variables --no-builtin-rules --quest
  # Este programa fue construido para i386-pc-mingw32
  
 
-# Base de datos del Make, mostrada en Thu Apr 21 17:40:30 2022
+# Base de datos del Make, mostrada en Thu Apr 21 19:23:34 2022
 
 # Variables
 
@@ -56,7 +56,7 @@ PROGRAMW6432 = C:\Program Files
 # entorno
 PROGRAMDATA = C:\ProgramData
 # entorno
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-2eef96b5-baf3-4ca7-943b-ed1cbb366278-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-af2584e5-cdb8-47a0-9773-a6a67bbeeb90-sock
 # entorno
 VSCODE_CWD = C:\Users\ramir\AppData\Local\Programs\Microsoft VS Code
 # entorno
@@ -82,7 +82,7 @@ NODE_OPTIONS =
 # autom�tica/o
 %F = $(notdir $%)
 # entorno
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_8804_QFWCUGKJXAVNJJHS
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_23140_MTRSDEWBTQYDFOZH
 # entorno
 VSCODE_PIPE_LOGGING = true
 # entorno
@@ -192,7 +192,7 @@ PROCESSOR_LEVEL = 6
 # entorno
 FPS_BROWSER_APP_PROFILE_STRING = Internet Explorer
 # entorno
-VSCODE_PID = 8804
+VSCODE_PID = 23140
 # entorno
 USERDOMAIN_ROAMINGPROFILE = PC
 # estad�sticas del conjunto de variables de la tabla de hash:
@@ -221,6 +221,7 @@ USERDOMAIN_ROAMINGPROFILE = PC
 # C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR (llave C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR, mtime 1636777590): 5 archivos, no imposibilidades.
 # C:\Program Files (x86)\GnuWin32\bin (llave C:/Program Files (x86)/GnuWin32/bin, mtime 1641706410): 5 archivos, no imposibilidades.
 
+ 
 # 3773 archivos, no imposibilidades en 16 directorios.
 
 # Reglas impl�citas.
@@ -241,10 +242,7 @@ all:
 # No es un objetivo:
 .DEFAULT:
 #  La b�squeda de reglas impl�citas ha sido efectuada.
-#  La fecha de modifi 
-make.exe: *** No hay ninguna regla para construir el objetivo `all'.  Alto.
-
-caci�n no se comprob�.
+#  La fecha de modificaci�n no se comprob�.
 #  El archivo ha sido actualizado.
 
 savereq:
@@ -294,7 +292,10 @@ install:
 	poetry update && poetry install
 	
 
-# estad�sticas de la tabla de hash de los archivos:
+# estad�sticas d 
+make.exe: *** No hay ninguna regla para construir el objetivo `all'.  Alto.
+
+e la tabla de hash de los archivos:
 # Carga=8/1024=1%, Rehash=0, Colisiones=0/19=0%
 # Rutas de b�squeda VPATH
 
@@ -307,6 +308,6 @@ install:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Se termina la base de datos de Make en Thu Apr 21 17:40:30 2022
+# Se termina la base de datos de Make en Thu Apr 21 19:23:34 2022
 
  

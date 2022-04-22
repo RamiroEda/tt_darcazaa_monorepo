@@ -1,3 +1,4 @@
+import cmd
 import json
 from threading import Thread
 from time import sleep
@@ -77,6 +78,7 @@ class DroneCom:
         })
         
         if status.state == "STANDBY":
+            self.clear_commands()
             self.is_cancel = False
             self.send_message("current_mission", None)
             self.send_message("status", MissionStatus.IDLE.value)
@@ -127,6 +129,18 @@ class DroneCom:
             0, 0,
             mavutil.mavlink.MAV_CMD_CONDITION_YAW,
             0, 3, 0, direction, 1, 0, 0, 0))
+        
+    def clear_commands(self):
+        self.vehicle.commands.download()
+        self.vehicle.commands.wait_ready()
+        
+        cmds = self.vehicle.commands
+        
+        cmds.clear()
+        cmds.next = 0
+        cmds.upload()
+        
+        
         
     def set_mode(self, mode: str):
         self.vehicle.mode = VehicleMode(mode)
@@ -217,9 +231,8 @@ class DroneCom:
     def land(self):
         if(self.vehicle.system_status.state != "ACTIVE"):
             return
-        
-        self.vehicle.commands.download()
-        self.vehicle.commands.wait_ready()
+    
+        self.clear_commands()
         
         home = self.vehicle.home_location
         

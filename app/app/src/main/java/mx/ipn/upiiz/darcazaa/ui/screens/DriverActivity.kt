@@ -239,7 +239,10 @@ class DriverActivity : AppCompatActivity() {
                                     modifier = Modifier.padding(vertical = 4.dp, horizontal = 16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(text = "Habiltar conducción")
+                                    Text(
+                                        text = "Habiltar conducción",
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                     Switch(
                                         modifier = Modifier.padding(start = 4.dp),
                                         checked = isDrivingEnabled,
