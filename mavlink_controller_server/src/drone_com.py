@@ -67,7 +67,7 @@ class DroneCom:
             
             until_discharge = battery.level - 5 / discharge_speed
             
-            time_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location) / self.vehicle.airspeed
+            time_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location.global_frame) / self.vehicle.airspeed
             
             self.print("Discharge rate: %f. Until discharge: %fs. Time to home: %fs." % (discharge_speed, until_discharge, time_to_home))
             
