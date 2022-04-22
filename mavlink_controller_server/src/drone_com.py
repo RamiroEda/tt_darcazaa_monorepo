@@ -1,9 +1,9 @@
-import cmd
-import json
+import geopy.distance
+from datetime import datetime
 from threading import Thread
 from time import sleep
-from typing import Callable, List
-from dronekit import Battery, Command, LocationGlobalRelative, Locations, SystemStatus, connect, VehicleMode, Vehicle, CommandSequence
+from typing import Callable, List, Tuple
+from dronekit import Battery, Command, LocationGlobalRelative, Locations, SystemStatus, connect, VehicleMode, Vehicle, CommandSequence, LocationGlobal
 from pymavlink import mavutil
 from models.lat_lng import LatLng
 from models.mission_status import MissionStatus
@@ -15,6 +15,8 @@ class DroneCom:
     is_cancel = False
     vehicle: Vehicle = None
     windspeed: float = 0.0
+    
+    vehicle_start_mission_battery: Tuple[datetime, float] = None
     
     def __init__(self, debug: bool):
         self.debug = debug
@@ -48,7 +50,7 @@ class DroneCom:
             "heading": self.vehicle.heading
         })
 
-    def on_battery_update(self, attr_name: str, aux: any, battery: Battery):
+    def on_battery_update(self, attr_name: str, battery: Battery):
         if(self.vehicle is None):
             return
         self.send_message("battery", {
@@ -57,10 +59,25 @@ class DroneCom:
             "voltage": battery.voltage
         })
         
-        if battery.level < MINIMUM_BATTERY and self.vehicle.commands.next < self.vehicle.commands.count:
+        if self.vehicle_start_mission_battery is not None:
+            (start, level) = self.vehicle_start_mission_battery
+            timediff = datetime.now() - start
+            leveldiff = battery.level - level
+            discharge_speed = leveldiff / timediff.seconds
+            
+            until_discharge = battery.level - 5 / discharge_speed
+            
+            time_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location) / self.vehicle.airspeed
+            
+            self.print("Discharge rate: %f. Until discharge: %fs. Time to home: %fs." % (discharge_speed, until_discharge, time_to_home))
+            
+            if until_discharge <= time_to_home:
+                self.cancel_mission()
+        elif battery.level < MINIMUM_BATTERY and self.vehicle.commands.next < self.vehicle.commands.count:
             self.cancel_mission()
+    
 
-    def on_commands_update(self, attr_name: str, aux: any, commands: CommandSequence):
+    def on_commands_update(self, attr_name: str, commands: CommandSequence):
         if(self.vehicle is None):
             return
         if(commands.next == commands.count):
@@ -69,7 +86,7 @@ class DroneCom:
             else:
                 self.send_message("status", MissionStatus.CANCELING.value)
 
-    def on_system_status_update(self, attr_name: str, aux: any, status: SystemStatus):
+    def on_system_status_update(self, attr_name: str, status: SystemStatus):
         if(self.vehicle is None):
             return
         
@@ -83,12 +100,13 @@ class DroneCom:
         if status.state == "STANDBY":
             self.clear_commands()
             self.is_cancel = False
+            self.vehicle_start_mission_battery = None
             self.send_message("current_mission", None)
             self.send_message("status", MissionStatus.IDLE.value)
         if status.state == "CRITICAL" or status.state == "EMERGENCY":
             self.cancel_mission()
             
-    def on_camera_information_update(self, name:str, message: common.MAVLink_camera_information_message):
+    def on_camera_information_update(self, attr_name:str, message: common.MAVLink_camera_information_message):
         if message.flags and common.CAMERA_CAP_FLAGS_HAS_VIDEO_STREAM == 0 :
             print("⚠️ Video streaming not supported")
         else:
@@ -203,6 +221,8 @@ class DroneCom:
         else:
             self.send_message("status", MissionStatus.WAITING_FOR_BATTERY.value)
             return
+        
+        self.vehicle_start_mission_battery = (datetime.now(), self.vehicle.battery.level)
         
         points = self.parse_mission(mission["waypoints"])
         self.print("🗺️  Points loaded: %i" % len(points))
@@ -319,3 +339,6 @@ class DroneCom:
         self.vehicle.commands.next = 0
         self.vehicle.commands.upload()
         self.print("✅ Mission Uploaded")
+        
+    def distance_between_locations(self, loc1: LocationGlobal, loc2: LocationGlobal) -> float:
+        return geopy.distance.geodesic((loc1.lat, loc1.lon), (loc2.lat, loc2.lon)).meters

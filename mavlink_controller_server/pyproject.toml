@@ -13,6 +13,7 @@ python-socketio = "^5.5.1"
 requests = "^2.27.1"
 websocket-client = "^1.2.3"
 pymavlink = "^2.4.19"
+geopy = "^2.2.0"
 
 [tool.poetry.dev-dependencies]
 python-dotenv = "^0.14.0"
