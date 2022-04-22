@@ -96,7 +96,7 @@ class DroneCom:
         if(self.vehicle is None):
             return
         
-        self.print("New status: %s", status.state)
+        self.print("New status: %s" % status.state)
         
         self.send_message("system_status", {
             "status": status.state,
@@ -228,8 +228,6 @@ class DroneCom:
             self.send_message("status", MissionStatus.WAITING_FOR_BATTERY.value)
             return
         
-        self.vehicle_start_mission_battery = (datetime.now(), self.vehicle.battery.level)
-        
         points = self.parse_mission(mission["waypoints"])
         self.print("🗺️  Points loaded: %i" % len(points))
         if(len(points) >= 3):
@@ -302,6 +300,8 @@ class DroneCom:
                 self.print("✅ Reached target altitude")
                 break
             sleep(1)
+            
+        self.vehicle_start_mission_battery = (datetime.now(), self.vehicle.battery.level)
 
     def print(
         self,
