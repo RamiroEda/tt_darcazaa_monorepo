@@ -104,7 +104,7 @@ class ConnectionSocketIORepository(
                         "index" to it.index,
                         "latitude" to it.latitude,
                         "longitude" to it.longitude,
-                        "routine_id" to it.routine_id
+                        "routine_hash" to it.routine_hash
                     ))
                 }
             })

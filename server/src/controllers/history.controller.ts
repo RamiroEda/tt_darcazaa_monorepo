@@ -8,8 +8,8 @@ export class HistoryController {
     @Inject()
     historyService!: HistoryService;
 
-    @Get('/:id')
-    getHistoryOfRoutine(@Required() @PathParams('id') id: string) {
-        return this.historyService.getByRoutine(id);
+    @Get('/:hash')
+    getHistoryOfRoutine(@Required() @PathParams('hash') hash: string) {
+        return this.historyService.getByRoutineHash(hash);
     }
 }

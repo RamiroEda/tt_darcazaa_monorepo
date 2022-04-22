@@ -3,7 +3,6 @@ package mx.ipn.upiiz.darcazaa.data.models
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.*
-import kotlin.math.absoluteValue
 
 @Entity(tableName = "routines")
 data class Routine(
@@ -12,7 +11,7 @@ data class Routine(
     @ColumnInfo(name = "start")
     val start: Double,
     @ColumnInfo(name = "repeat")
-    val repeat: Int,
+    val repeat: String,
     @ColumnInfo(name = "title")
     val title: String,
     @ColumnInfo(name = "is_synced")
@@ -26,7 +25,7 @@ data class Routine(
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readDouble(),
-        parcel.readInt(),
+        parcel.readString()!!,
         parcel.readString()!!,
         parcel.readByte() != 0.toByte(),
         parcel.readString()!!
@@ -40,7 +39,7 @@ data class Routine(
     override fun hashCode(): Int {
         var result = id
         result = 31 * result + start.hashCode()
-        result = 31 * result + repeat
+        result = 31 * result + repeat.hashCode()
         result = 31 * result + title.hashCode()
         result = 31 * result + polygon.hashCode()
         return result
@@ -49,7 +48,7 @@ data class Routine(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
         parcel.writeDouble(start)
-        parcel.writeInt(repeat)
+        parcel.writeString(repeat)
         parcel.writeString(title)
         parcel.writeByte(if (isSynced) 1 else 0)
         parcel.writeString(polygon)
@@ -75,8 +74,8 @@ data class RoutineWithWaypoints(
     val routine: Routine,
     @Relation(
         entity = Waypoint::class,
-        parentColumn = "id",
-        entityColumn = "routine_id"
+        parentColumn = "hash",
+        entityColumn = "routine_hash"
     )
     val waypoints: List<Waypoint>
 ): Parcelable {

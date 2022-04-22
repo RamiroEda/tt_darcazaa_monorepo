@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+
+model Routine {
+  id          Int       @id @default(autoincrement())
+  hash        String    @unique
+  start       Float
+  repeat      String
+  title       String
+  executedAt  Int?
+  waypoints   Waypoint[]
+  executions  History[]
+}
+
+model Waypoint {
+  id            Int       @id @default(autoincrement())
+  routine_hash  String
+  routine       Routine   @relation(fields: [routine_hash], references: [hash], onDelete: Cascade)
+  index         Int
+  latitude      Float
+  longitude     Float
+}
+
+model History {
+  id            Int       @id @default(autoincrement())
+  routine_hash  String
+  routine       Routine   @relation(fields: [routine_hash], references: [hash])
+  executedAt    DateTime  @default(now())
+  status        String
+}

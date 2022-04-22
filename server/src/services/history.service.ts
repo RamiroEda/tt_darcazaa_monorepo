@@ -1,16 +1,15 @@
-import { DatabaseProvider } from '@/providers/db.provider';
-import { Inject, Injectable } from '@tsed/di';
-import { ROUTINE_HISTORY_TABLE } from './mission.service';
+import { PrismaClient } from '@prisma/client';
+import { Injectable } from '@tsed/di';
 
 @Injectable()
 export class HistoryService {
-    @Inject()
-    databaseProvider!: DatabaseProvider;
+    prisma = new PrismaClient();
 
-    getByRoutine(id: string) {
-        return this.databaseProvider.database.all(
-            `SELECT * FROM ${ROUTINE_HISTORY_TABLE} WHERE routine_id = ?`,
-            id,
-        );
+    getByRoutineHash(id: string) {
+        return this.prisma.history.findMany({
+            where: {
+                routine_hash: id,
+            },
+        });
     }
 }

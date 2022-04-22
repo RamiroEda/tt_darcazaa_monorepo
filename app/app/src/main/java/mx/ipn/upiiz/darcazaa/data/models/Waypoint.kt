@@ -4,7 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
-import androidx.room.ForeignKey.NO_ACTION
 
 @Entity(
     tableName = "waypoints",
@@ -12,12 +11,12 @@ import androidx.room.ForeignKey.NO_ACTION
         ForeignKey(
             entity = Routine::class,
             parentColumns = arrayOf("id"),
-            childColumns = arrayOf("routine_id"),
+            childColumns = arrayOf("routine_hash"),
             onDelete = CASCADE
         )
     ],
     indices = [
-        Index(value = arrayOf("routine_id"))
+        Index(value = arrayOf("routine_hash"))
     ]
 )
 data class Waypoint(
@@ -29,15 +28,15 @@ data class Waypoint(
     val latitude: Double,
     @ColumnInfo(name = "longitude")
     val longitude: Double,
-    @ColumnInfo(name = "routine_id")
-    val routine_id: Int
+    @ColumnInfo(name = "routine_hash")
+    val routine_hash: String
 ): Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readInt(),
         parcel.readDouble(),
         parcel.readDouble(),
-        parcel.readInt()
+        parcel.readString()!!
     ) {
     }
 
@@ -46,7 +45,7 @@ data class Waypoint(
         parcel.writeInt(index)
         parcel.writeDouble(latitude)
         parcel.writeDouble(longitude)
-        parcel.writeInt(routine_id)
+        parcel.writeString(routine_hash)
     }
 
     override fun describeContents(): Int {

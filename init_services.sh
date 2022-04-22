@@ -1,5 +1,5 @@
 #!/bin/bash
 cd ./server
-npm install
+npm install && npx prisma migrate deploy
 cd ../mavlink_controller_server
 make install

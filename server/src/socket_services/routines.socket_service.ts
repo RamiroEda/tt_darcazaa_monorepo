@@ -9,11 +9,10 @@ import {
     SocketSession,
 } from '@tsed/socketio';
 import * as SocketIO from 'socket.io';
-import { Routine, RoutineModel } from '@/models/routine';
 import { SyncingStatus } from '@/models/syncing_status';
-import { WaypointModel } from '@/models/waypoint';
 import { MissionStatus } from '@/models/mission_status';
 import { Inject } from '@tsed/di';
+import { Routine } from '@prisma/client';
 
 @SocketService('/routines')
 export class RoutinesSocketService {
@@ -58,8 +57,18 @@ export class RoutinesSocketService {
     async syncRoutines(
         @Args(0)
         routines: {
-            routines: Array<Partial<RoutineModel>>;
-            waypoints: Array<Partial<WaypointModel>>;
+            routines: Array<{
+                start: number;
+                repeat: string;
+                title: string;
+                hash: string;
+            }>;
+            waypoints: Array<{
+                index: number;
+                latitude: number;
+                longitude: number;
+                routine_hash: string;
+            }>;
         },
     ) {
         console.log('💱 Syncing...');
@@ -67,7 +76,6 @@ export class RoutinesSocketService {
         this.nsp?.emit('sync', SyncingStatus.SYNCING);
         try {
             await this.missionService.deleteAll();
-            new Promise((resolve) => setTimeout(resolve, 1000));
             await this.missionService.addAll(routines);
             this.nsp?.emit('sync', SyncingStatus.SYNCED);
             this.nsp?.emit('hashes', await this.missionService.getHashes());
@@ -129,7 +137,7 @@ export class RoutinesSocketService {
     @Broadcast('current_mission')
     async updateCurrentMission(@Args(0) currentMission: any) {
         if (this.currentMission && !currentMission) {
-            if (!this.currentMission.repeat.includes(true)) {
+            if (this.currentMission.repeat.length > 0) {
                 await this.missionService.delete(this.currentMission.id);
             } else {
                 await this.missionService.markCompleted(this.currentMission);

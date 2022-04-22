@@ -15,7 +15,6 @@ import { PORT } from './constants';
 import axios = require('axios');
 import qrTerminal = require('qrcode-terminal');
 import os = require('os');
-import { DatabaseProvider } from './providers/db.provider';
 import { HistoryController } from './controllers/history.controller';
 import '@tsed/socketio';
 import '@tsed/platform-express';
@@ -41,9 +40,6 @@ export class Server implements BeforeRoutesInit, AfterRoutesInit {
     @Inject()
     missionService!: MissionService;
 
-    @Inject()
-    databaseProvider!: DatabaseProvider;
-
     @Configuration()
     settings!: Configuration;
 
@@ -52,8 +48,6 @@ export class Server implements BeforeRoutesInit, AfterRoutesInit {
     constructor(private routinesService: RoutinesSocketService) {}
 
     async $beforeRoutesInit(): Promise<any> {
-        await this.databaseProvider.connect();
-
         this.app
             .use(cookieParser())
             .use(compress({}))

@@ -1,153 +1,111 @@
-import { DatabaseProvider } from './../providers/db.provider';
-import { Routine, RoutineModel } from '@/models/routine';
-import { WaypointModel } from '@/models/waypoint';
-import { getDayOfWeek, numberToDays } from '@/utils';
-import { Inject, Injectable } from '@tsed/di';
-
-export const ROUTINE_TABLE = 'routines';
-export const WAYPOINT_TABLE = 'waypoints';
-export const ROUTINE_HISTORY_TABLE = 'history';
+import { PrismaClient, Routine, Waypoint } from '@prisma/client';
+import { Injectable } from '@tsed/di';
+import moment from 'moment';
 
 @Injectable()
 export class MissionService {
-    @Inject()
-    databaseProvider!: DatabaseProvider;
+    prisma = new PrismaClient();
 
-    async getAll(): Promise<Routine[]> {
-        const date = new Date();
-        const currentHour = date.getHours() + date.getMinutes() / 60.0;
+    async getAll(): Promise<Array<Routine & { waypoints: Waypoint[] }>> {
+        const now = moment();
+        const currentHour = now.hours() + now.minutes() / 60.0;
 
-        const routines: RoutineModel[] | undefined =
-            await this.databaseProvider.database.all(
-                `SELECT * FROM ${ROUTINE_TABLE} WHERE start < ? AND (repeat & (1 << ?)) != 0 AND executedAt != ?`,
-                currentHour,
-                getDayOfWeek(),
-                date.getDate(),
-            );
-
-        if (!routines) return [];
-
-        return Promise.all(
-            routines.map(async (routine) => {
-                const waypoints: WaypointModel[] | undefined =
-                    await this.databaseProvider.database.all(
-                        `SELECT * FROM ${WAYPOINT_TABLE} WHERE routine_id = ?`,
-                        routine.id,
-                    );
-
-                return {
-                    ...routine,
-                    repeat: numberToDays(routine.repeat),
-                    waypoints: waypoints ?? [],
-                };
-            }),
-        );
+        return this.prisma.routine.findMany({
+            where: {
+                start: {
+                    lt: currentHour,
+                },
+                repeat: {
+                    contains: `${now.day()}`,
+                },
+                executedAt: {
+                    not: now.dayOfYear(),
+                },
+            },
+            include: {
+                waypoints: true,
+            },
+        });
     }
 
-    async getByHash(hash: string): Promise<Routine | undefined> {
-        const routine: RoutineModel | undefined =
-            await this.databaseProvider.database.get(
-                `SELECT * FROM ${ROUTINE_TABLE} WHERE hash = ?`,
+    async getByHash(
+        hash: string,
+    ): Promise<(Routine & { waypoints: Waypoint[] }) | null> {
+        return this.prisma.routine.findFirst({
+            where: {
                 hash,
-            );
-
-        if (!routine) return undefined;
-
-        const waypoints: WaypointModel[] | undefined =
-            await this.databaseProvider.database.all(
-                `SELECT * FROM ${WAYPOINT_TABLE} WHERE routine_id = ?`,
-                routine.id,
-            );
-
-        return {
-            ...routine,
-            repeat: numberToDays(routine.repeat),
-            waypoints: waypoints ?? [],
-        };
+            },
+            include: {
+                waypoints: true,
+            },
+        });
     }
 
     async getHashes(): Promise<string[]> {
-        const hashes: Array<{ hash: string }> | undefined =
-            await this.databaseProvider.database.all(
-                `SELECT hash FROM ${ROUTINE_TABLE}`,
-            );
-
-        if (!hashes) return [];
-
-        return hashes.map((val) => val.hash);
+        return (
+            await this.prisma.routine.findMany({
+                select: {
+                    hash: true,
+                },
+            })
+        ).map((it) => it.hash);
     }
 
     async markCompleted(mission: Routine) {
-        await this.databaseProvider.database.run(
-            `UPDATE ${ROUTINE_TABLE} SET executedAt = ? WHERE id = ?`,
-            new Date().getDate(),
-            mission.id,
-        );
+        await this.prisma.routine.update({
+            where: {
+                id: mission.id,
+            },
+            data: {
+                executedAt: moment().dayOfYear(),
+            },
+        });
     }
 
-    async add(data: Partial<RoutineModel>) {
-        await this.databaseProvider.database.run(
-            `INSERT INTO ${ROUTINE_TABLE} (start, repeat, title) VALUES (?, ?, ?)`,
-            data.start,
-            data.repeat,
-            data.title,
-        );
+    async add(data: {
+        start: number;
+        repeat: string;
+        title: string;
+        hash: string;
+    }): Promise<Routine> {
+        return await this.prisma.routine.create({
+            data,
+        });
     }
 
     async addAll(data: {
-        routines: Array<Partial<RoutineModel>>;
-        waypoints: Array<Partial<WaypointModel>>;
+        routines: Array<{
+            start: number;
+            repeat: string;
+            title: string;
+            hash: string;
+        }>;
+        waypoints: Array<{
+            index: number;
+            latitude: number;
+            longitude: number;
+            routine_hash: string;
+        }>;
     }) {
-        for (const routine of data.routines) {
-            await this.databaseProvider.database.run(
-                `INSERT INTO ${ROUTINE_TABLE} (id, start, repeat, title, hash) VALUES (?, ?, ?, ?, ?)`,
-                routine.id,
-                routine.start,
-                routine.repeat,
-                routine.title,
-                routine.hash,
-            );
-        }
-        for (const wp of data.waypoints) {
-            await this.databaseProvider.database.run(
-                `INSERT INTO ${WAYPOINT_TABLE} (id, \`index\`, latitude, longitude, routine_id) VALUES (?, ?, ?, ?, ?)`,
-                wp.id,
-                wp.index,
-                wp.latitude,
-                wp.longitude,
-                wp.routine_id,
-            );
-        }
+        this.prisma.$transaction([
+            ...data.routines.map((data) =>
+                this.prisma.routine.create({ data }),
+            ),
+            ...data.waypoints.map((data) =>
+                this.prisma.waypoint.create({ data }),
+            ),
+        ]);
     }
 
     async deleteAll() {
-        await this.databaseProvider.database.run(
-            `DELETE FROM ${ROUTINE_TABLE}`,
-        );
-        await this.databaseProvider.database.run(
-            `DELETE FROM ${WAYPOINT_TABLE}`,
-        );
-        await this.databaseProvider.database.run(
-            `DELETE FROM sqlite_sequence WHERE name = ? OR name = ?`,
-            ROUTINE_TABLE,
-            WAYPOINT_TABLE,
-        );
+        await this.prisma.routine.deleteMany();
     }
 
-    async delete(id: number): Promise<boolean> {
-        try {
-            await this.databaseProvider.database.run(
-                `DELETE FROM ${ROUTINE_TABLE} WHERE id = ?`,
+    async delete(id: number) {
+        await this.prisma.routine.delete({
+            where: {
                 id,
-            );
-            await this.databaseProvider.database.run(
-                `DELETE FROM ${WAYPOINT_TABLE} WHERE routine_id = ?`,
-                id,
-            );
-        } catch (e) {
-            return false;
-        }
-
-        return true;
+            },
+        });
     }
 }
