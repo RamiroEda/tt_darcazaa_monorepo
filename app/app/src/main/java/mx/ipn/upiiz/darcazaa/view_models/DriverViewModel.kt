@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.socket.client.IO
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
@@ -35,7 +36,7 @@ class DriverViewModel @Inject constructor(
     }
 
     private fun sendDrivingData() = viewModelScope.launch {
-        while (true){
+        while (isActive){
             if(currentX != 0.0 || currentY != 0.0 || currentZ != 0.0){
                 drivingSocketIORepository.setVelocity(currentX, currentY, currentZ)
 

@@ -40,8 +40,8 @@ class ConnectionViewModel @Inject constructor(
     }
 
     private fun waitForConnection() = viewModelScope.launch {
-        while (true){
-            while (true){
+        while (isActive){
+            while (isActive){
                 println("Waiting for connection in ${preferences.get(PreferenceKeys.Url, "192.168.1.1")} ...")
                 if(connectionRepository.tryConnect()) break
                 else delay(1000)

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import mx.ipn.upiiz.darcazaa.data.data_providers.LocalDatabase
@@ -40,7 +41,7 @@ class ChargingStationViewModel @Inject constructor(
     }
 
     private fun listenRoutines() = viewModelScope.launch {
-        while (true){
+        while (isActive){
             try {
                 routineRepository.getAllFlow().collect {
                     routines.clear()
