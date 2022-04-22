@@ -17,14 +17,11 @@ export class MissionService {
             max: 7,
         });
 
-        console.log(`ℹ️`, now, currentHour, currentDay);
-        console.log(
-            `ℹ️`,
-            (await this.prisma.routine.findMany()).map((it) => it.repeat),
+        const elements = await this.prisma.$queryRawUnsafe<
+            Array<{ id: number }>
+        >(
+            `SELECT id FROM Routine WHERE repeat = '' OR repeat LIKE '%${currentDay}%';`,
         );
-
-        const elements: Array<{ id: number }> = await this.prisma
-            .$queryRaw`SELECT id FROM Routine WHERE repeat = '' OR repeat LIKE '%${currentDay}%'`;
 
         return this.prisma.routine.findMany({
             where: {
