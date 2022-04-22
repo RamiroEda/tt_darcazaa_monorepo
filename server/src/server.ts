@@ -1,17 +1,24 @@
+import { MissionService } from './services/mission.service';
 import { Configuration, Inject } from '@tsed/di';
-import { PlatformApplication } from '@tsed/common';
+import {
+    AfterRoutesInit,
+    BeforeRoutesInit,
+    PlatformApplication,
+} from '@tsed/common';
 import bodyParser from 'body-parser';
 import compress from 'compression';
 import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import schedule = require('node-schedule');
-import missionService from '@/services/mission.service';
-import '@tsed/socketio';
 import { RoutinesSocketService } from './socket_services/routines.socket_service';
 import { PORT } from './constants';
 import axios = require('axios');
 import qrTerminal = require('qrcode-terminal');
 import os = require('os');
+import { DatabaseProvider } from './providers/db.provider';
+import { HistoryController } from './controllers/history.controller';
+import '@tsed/socketio';
+import '@tsed/platform-express';
 
 const rootDir = __dirname;
 
@@ -20,29 +27,56 @@ const rootDir = __dirname;
     acceptMimes: ['application/json'],
     socketIO: {},
     port: PORT,
+    mount: {
+        '/': [HistoryController],
+    },
     logger: {
         disableRoutesSummary: true,
     },
 })
-export class Server {
+export class Server implements BeforeRoutesInit, AfterRoutesInit {
     @Inject()
     app!: PlatformApplication;
+
+    @Inject()
+    missionService!: MissionService;
+
+    @Inject()
+    databaseProvider!: DatabaseProvider;
 
     @Configuration()
     settings!: Configuration;
 
-    isRunning = false;
+    isExecutingRoutine = false;
 
     constructor(private routinesService: RoutinesSocketService) {}
 
-    public async $onInit() {
+    async $beforeRoutesInit(): Promise<any> {
+        await this.databaseProvider.connect();
+
+        this.app
+            .use(cookieParser())
+            .use(compress({}))
+            .use(methodOverride())
+            .use(bodyParser.json())
+            .use(
+                bodyParser.urlencoded({
+                    extended: true,
+                }),
+            );
+    }
+
+    async $afterRoutesInit(): Promise<any> {
         await this.checkWeather();
-        this.checkDatabase();
+        await this.checkPendingRoutines();
         schedule.scheduleJob('*/1 * * * *', async () => {
             await this.checkWeather();
-            this.checkDatabase();
+            await this.checkPendingRoutines();
         });
+        this.printNetworkInterfaces();
+    }
 
+    private printNetworkInterfaces() {
         const interfaces = Object.entries(os.networkInterfaces());
 
         for (const netInterface of interfaces) {
@@ -67,33 +101,20 @@ export class Server {
         this.routinesService.setWindspeed(response.data.wind.speed);
     }
 
-    private async checkDatabase() {
-        if (this.isRunning) return;
+    private async checkPendingRoutines() {
+        if (this.isExecutingRoutine) return;
         console.log('⌛ Checking database...');
 
-        const missions = await missionService.getAll();
+        const missions = await this.missionService.getAll();
 
         if (missions.length > 0) {
-            this.isRunning = true;
+            this.isExecutingRoutine = true;
             const mission = missions[0];
             this.routinesService.runMission(mission);
 
-            this.isRunning = false;
+            this.isExecutingRoutine = false;
         } else {
             console.log('❎ No missions found');
         }
-    }
-
-    public $beforeRoutesInit(): void | Promise<any> {
-        this.app
-            .use(cookieParser())
-            .use(compress({}))
-            .use(methodOverride())
-            .use(bodyParser.json())
-            .use(
-                bodyParser.urlencoded({
-                    extended: true,
-                }),
-            );
     }
 }

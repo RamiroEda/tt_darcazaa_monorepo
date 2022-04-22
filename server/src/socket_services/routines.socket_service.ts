@@ -1,3 +1,4 @@
+import { MissionService } from '@/services/mission.service';
 import {
     Nsp,
     SocketService,
@@ -9,14 +10,17 @@ import {
 } from '@tsed/socketio';
 import * as SocketIO from 'socket.io';
 import { Routine, RoutineModel } from '@/models/routine';
-import missionService from '@/services/mission.service';
 import { SyncingStatus } from '@/models/syncing_status';
 import { WaypointModel } from '@/models/waypoint';
 import { MissionStatus } from '@/models/mission_status';
+import { Inject } from '@tsed/di';
 
 @SocketService('/routines')
 export class RoutinesSocketService {
+    @Inject() missionService!: MissionService;
+
     @Nsp nsp?: SocketIO.Namespace;
+
     status: MissionStatus = MissionStatus.IDLE;
     battery: any = {
         level: 100,
@@ -27,7 +31,8 @@ export class RoutinesSocketService {
     currentMission: Routine | undefined;
     systemStatus: string | undefined;
     windspeed = 0;
-    streamUri: string | undefined = "https://cdn.flowplayer.com/a30bd6bc-f98b-47bc-abf5-97633d4faea0/hls/de3f6ca7-2db3-4689-8160-0f574a5996ad/playlist.m3u8"; //TODO: ELIMINAR
+    streamUri: string | undefined =
+        'https://cdn.flowplayer.com/a30bd6bc-f98b-47bc-abf5-97633d4faea0/hls/de3f6ca7-2db3-4689-8160-0f574a5996ad/playlist.m3u8'; //TODO: ELIMINAR
 
     $onConnection(
         @Socket socket: SocketIO.Socket,
@@ -61,11 +66,11 @@ export class RoutinesSocketService {
 
         this.nsp?.emit('sync', SyncingStatus.SYNCING);
         try {
-            await missionService.deleteAll();
+            await this.missionService.deleteAll();
             new Promise((resolve) => setTimeout(resolve, 1000));
-            await missionService.addAll(routines);
+            await this.missionService.addAll(routines);
             this.nsp?.emit('sync', SyncingStatus.SYNCED);
-            this.nsp?.emit('hashes', await missionService.getHashes());
+            this.nsp?.emit('hashes', await this.missionService.getHashes());
             console.log(`✅ Synced ${routines.routines.length} routines`);
         } catch (e) {
             console.error(e);
@@ -86,7 +91,7 @@ export class RoutinesSocketService {
             socket.emit('camera_stream_uri', this.streamUri);
         }
         socket.emit('current_mission', this.currentMission);
-        socket.emit('hashes', await missionService.getHashes());
+        socket.emit('hashes', await this.missionService.getHashes());
         socket.emit('windspeed', this.windspeed);
     }
 
@@ -125,9 +130,9 @@ export class RoutinesSocketService {
     async updateCurrentMission(@Args(0) currentMission: any) {
         if (this.currentMission && !currentMission) {
             if (!this.currentMission.repeat.includes(true)) {
-                await missionService.delete(this.currentMission.id);
+                await this.missionService.delete(this.currentMission.id);
             } else {
-                await missionService.markCompleted(this.currentMission);
+                await this.missionService.markCompleted(this.currentMission);
             }
         }
         this.currentMission = currentMission;
@@ -198,7 +203,7 @@ export class RoutinesSocketService {
 
     @Input('run_mission')
     async runMissionByHash(@Args(0) hash: string) {
-        const mission = await missionService.getByHash(hash);
+        const mission = await this.missionService.getByHash(hash);
 
         if (mission) {
             this.runMission(mission);
