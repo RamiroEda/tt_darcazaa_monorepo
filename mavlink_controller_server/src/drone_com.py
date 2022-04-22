@@ -80,6 +80,7 @@ class DroneCom:
             time_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location.global_frame) / self.vehicle.airspeed
                         
             if until_discharge <= time_to_home and not self.is_cancel:
+                self.print("🔋 Not enough battery. Time to home: %f. Time to discharge: %f" % (time_to_home, until_discharge))
                 self.cancel_mission()
     
 
