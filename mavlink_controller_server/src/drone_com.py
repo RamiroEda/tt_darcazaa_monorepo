@@ -237,7 +237,6 @@ class DroneCom:
             self.vehicle.mode = VehicleMode("AUTO")
 
     def send_message(self, event: str, payload: any = {}):
-        self.print("New event: %s" % event)
         for func in self.send_message_listeners:
             func(event, payload)
 
