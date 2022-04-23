@@ -14,21 +14,21 @@ class HistoryRetrofitRepository(
     val preferences: UserPreferences,
     val builder: retrofit2.Retrofit.Builder
 ) : HistoryRepository {
-    private interface Retrofit : HistoryRepository {
-        @GET("/history")
-        override suspend fun historyByHash(@Path("hash") hash: String): List<History>
-    }
-
-    override suspend fun historyByHash(hash: String): List<History> {
-        return getRetrofit().create(Retrofit::class.java).historyByHash(hash)
-    }
-
-    private fun getRetrofit() = builder.baseUrl(
+    private val retrofit = builder.baseUrl(
         "http://${
             preferences.get(
                 PreferenceKeys.Url,
                 "192.168.1.1"
             )
         }"
-    ).build()
+    ).build().create(Retrofit::class.java)
+
+    private interface Retrofit : HistoryRepository {
+        @GET("/history/{hash}")
+        override suspend fun historyByHash(@Path("hash") hash: String): List<History>
+    }
+
+    override suspend fun historyByHash(hash: String): List<History> {
+        return retrofit.historyByHash(hash)
+    }
 }

@@ -1,9 +1,11 @@
 package mx.ipn.upiiz.darcazaa.data.models
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import java.util.*
 
-data class History(
+@JsonClass(generateAdapter = true)
+data class  History(
     @Json(name = "id")
     val id: Int,
     @Json(name = "routine_hash")
