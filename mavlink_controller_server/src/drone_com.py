@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 import geopy.distance
 from datetime import datetime
 from threading import Thread
@@ -68,7 +67,7 @@ class DroneCom:
             if timediff.seconds == 0:
                 return
             
-            discharge_speed = leveldiff / timediff.seconds
+            discharge_speed = leveldiff / 2 / timediff.seconds
             
             if discharge_speed == 0:
                 return
@@ -105,7 +104,7 @@ class DroneCom:
         
         if status.state == "STANDBY":
             self.send_message("status", MissionStatus.IDLE.value)
-            self.send_message("current_mission", NULL)
+            self.send_message("current_mission", None)
             self.is_cancel = False
             self.vehicle_start_mission_battery = None
             self.clear_commands()
@@ -238,6 +237,7 @@ class DroneCom:
             self.vehicle.mode = VehicleMode("AUTO")
 
     def send_message(self, event: str, payload: any = {}):
+        self.print("New event: %s" % event)
         for func in self.send_message_listeners:
             func(event, payload)
 
