@@ -13,6 +13,7 @@ import { SyncingStatus } from '@/models/syncing_status';
 import { MissionStatus } from '@/models/mission_status';
 import { Inject } from '@tsed/di';
 import { Routine } from '@prisma/client';
+import { SystemStatus } from '@/models/system_status';
 
 @SocketService('/routines')
 export class RoutinesSocketService {
@@ -20,17 +21,17 @@ export class RoutinesSocketService {
 
     @Nsp nsp?: SocketIO.Namespace;
 
-    status: MissionStatus = MissionStatus.IDLE;
+    status = MissionStatus.IDLE;
     battery: any = {
         level: 100,
         current: 0.0,
         voltage: 0.0,
     };
     location: any;
-    currentMission: Routine | undefined;
-    systemStatus: string | undefined;
+    currentMission?: Routine;
+    systemStatus?: SystemStatus;
     windspeed = 0;
-    streamUri: string | undefined =
+    streamUri?: string =
         'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4'; //TODO: ELIMINAR
 
     $onConnection(
@@ -79,7 +80,7 @@ export class RoutinesSocketService {
             await this.missionService.addAll(routines);
             await new Promise((res) => setTimeout(res, 2000));
             this.nsp?.emit('sync', SyncingStatus.SYNCED);
-            this.nsp?.emit('hashes', await this.missionService.getHashes());
+            this.nsp?.emit('routines', await this.missionService.getAll());
             console.log(`✅ Synced ${routines.routines.length} routines`);
         } catch (e) {
             console.error(e);
@@ -100,7 +101,7 @@ export class RoutinesSocketService {
             socket.emit('camera_stream_uri', this.streamUri);
         }
         socket.emit('current_mission', this.currentMission);
-        socket.emit('hashes', await this.missionService.getHashes());
+        socket.emit('routines', await this.missionService.getAll());
         socket.emit('windspeed', this.windspeed);
     }
 
@@ -136,18 +137,17 @@ export class RoutinesSocketService {
 
     @Input('current_mission')
     @Broadcast('current_mission')
-    async updateCurrentMission(@Args(0) currentMission: any) {
-        console.log(this.currentMission, currentMission);
-
+    async updateCurrentMission(
+        @Args(0) currentMission: any,
+        @Socket socket: SocketIO.Socket,
+    ) {
         if (this.currentMission && !currentMission) {
-            if (this.currentMission.repeat.length > 0) {
-                console.log('Deleting', this.currentMission.title);
-
-                await this.missionService.delete(this.currentMission.id);
-            } else {
-                console.log('Marking as completed', this.currentMission.title);
-
-                await this.missionService.markCompleted(this.currentMission);
+            await this.missionService.markCompleted(
+                this.currentMission,
+                this.systemStatus?.canceled ?? false,
+            );
+            if (this.currentMission.repeat === '') {
+                socket.emit('routines', await this.missionService.getAll());
             }
         }
         this.currentMission = currentMission;
@@ -156,7 +156,7 @@ export class RoutinesSocketService {
 
     @Input('system_status')
     @Broadcast('system_status')
-    updateSystemStatus(@Args(0) systemStatus: any) {
+    updateSystemStatus(@Args(0) systemStatus: SystemStatus) {
         this.systemStatus = systemStatus;
         return this.systemStatus;
     }

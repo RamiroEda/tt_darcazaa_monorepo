@@ -8,7 +8,7 @@ from pymavlink import mavutil
 from models.lat_lng import LatLng
 from models.mission_status import MissionStatus
 from pymavlink.dialects.v20 import common
-from constants import DRONE_ALTITUDE, DRONE_IP, MAX_WINDSPEED, MINIMUM_BATTERY, MINIMUM_BATTERY_TO_START, WAYPOINT_ACCEPTANCE_RADIUS
+from constants import DRONE_ALTITUDE, DRONE_IP, GROUND_SPEED, MAX_WINDSPEED, MINIMUM_BATTERY, MINIMUM_BATTERY_TO_START, WAYPOINT_ACCEPTANCE_RADIUS
 
 class DroneCom:
     send_message_listeners: List[Callable[[str, any], None]] = []
@@ -61,26 +61,27 @@ class DroneCom:
         
         if self.vehicle_start_mission_battery is not None:
             (start, level) = self.vehicle_start_mission_battery
-            leveldiff = battery.level - level
-            timediff = datetime.now() - start
+            leveldiff = abs(battery.level - level)
+            timediff = abs(datetime.now() - start)
             
             if timediff.seconds == 0:
                 return
             
-            discharge_speed = leveldiff / 2 / timediff.seconds
+            discharge_speed = leveldiff / timediff.seconds
             
             if discharge_speed == 0:
                 return
             
-            until_discharge = battery.level / discharge_speed
+            until_discharge = (battery.level - 10) / discharge_speed
             
             if self.vehicle.airspeed == 0:
                 return
             
-            time_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location.global_frame) / self.vehicle.airspeed
+            distance_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location.global_frame)
+            time_to_home = distance_to_home / GROUND_SPEED
                         
             if until_discharge <= time_to_home and not self.is_cancel:
-                self.print("🔋 Not enough battery. Time to home: %f. Time to discharge: %f" % (time_to_home, until_discharge))
+                self.print("🔋 Not enough battery. Time to home: %f. Time to discharge: %f. Distance to home: %f" % (time_to_home, until_discharge, distance_to_home))
                 self.cancel_mission()
     
 
@@ -162,8 +163,6 @@ class DroneCom:
         
         cmds.clear()
         cmds.next = 0
-        cmds.upload()
-        
         
         
     def set_mode(self, mode: str):
@@ -186,6 +185,9 @@ class DroneCom:
         try:
             self.print("🧩 Connecting to drone at %s" % DRONE_IP)
             self.vehicle = connect(DRONE_IP, wait_ready=True)
+            self.vehicle.groundspeed = GROUND_SPEED
+            self.vehicle.commands.download()
+            self.vehicle.commands.wait_ready()
             self.print("✅ Drone connected. IP: %s" % DRONE_IP)
             self.vehicle.location.add_attribute_listener("global_relative_frame", self.on_location_update)
             self.vehicle.add_attribute_listener("system_status", self.on_system_status_update)
@@ -230,11 +232,11 @@ class DroneCom:
         
         points = self.parse_mission(mission["waypoints"])
         self.print("🗺️  Points loaded: %i" % len(points))
-        if(len(points) >= 3):
-            self.send_message("current_mission", mission)
-            self.upload_mission(points)
-            self.arm_and_takeoff()
-            self.vehicle.mode = VehicleMode("AUTO")
+        
+        self.send_message("current_mission", mission)
+        self.upload_mission(points)
+        self.arm_and_takeoff()
+        self.vehicle.mode = VehicleMode("AUTO")
 
     def send_message(self, event: str, payload: any = {}):
         for func in self.send_message_listeners:
@@ -244,37 +246,17 @@ class DroneCom:
         if self.vehicle.system_status.state == "STANDBY":
             return
             
-        self.send_message("status", MissionStatus.CANCELING.value)
-        cmds = self.vehicle.commands
-        cmds.next = cmds.count
-
         self.is_cancel = True
-        cmds.upload()
+        self.send_message("status", MissionStatus.CANCELING.value)
         self.print("❌ Routine canceled")
+        self.land()
         
     def land(self):
-        if(self.vehicle.system_status.state != "ACTIVE"):
+        if(self.vehicle.system_status.state == "STANDBY"):
             return
-    
+        
         self.clear_commands()
-        
-        home = self.vehicle.home_location
-        
-        if home is not None:
-            cmds = self.vehicle.commands
-            
-            cmds.add(Command(
-                0, 0, 0,
-                mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
-                mavutil.mavlink.MAV_CMD_NAV_LAND,
-                0, 0,
-                0, 0, 0, 0, home.lat, home.lon, DRONE_ALTITUDE
-            ))
-            
-            self.vehicle.commands.next = 0
-            self.vehicle.commands.upload()
-            
-            self.vehicle.mode = VehicleMode("AUTO")
+        self.vehicle.mode = VehicleMode("RTL")
         
     
     def arm_and_takeoff(self):
@@ -311,14 +293,12 @@ class DroneCom:
             print(message)
 
     def upload_mission(self, points: List[LatLng]):
-        self.print("🗑️ Clearing drone mission")
         home = None
 
         while home is None:
-            self.vehicle.commands.download()
-            self.vehicle.commands.wait_ready()
             home = self.vehicle.home_location
-            cmds = self.vehicle.commands
+            
+        cmds = self.vehicle.commands
             
         cmds.clear()
         cmds.next = 0

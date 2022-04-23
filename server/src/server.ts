@@ -18,6 +18,7 @@ import os = require('os');
 import { HistoryController } from './controllers/history.controller';
 import '@tsed/socketio';
 import '@tsed/platform-express';
+import { Status } from './models/system_status';
 
 const rootDir = __dirname;
 
@@ -97,10 +98,11 @@ export class Server implements BeforeRoutesInit, AfterRoutesInit {
     }
 
     private async checkPendingRoutines() {
-        if (this.routinesSocketService.systemStatus !== 'STANDBY') return;
+        if (this.routinesSocketService.systemStatus?.status === Status.ACTIVE)
+            return;
         console.log('⌛ Checking database...');
 
-        const missions = await this.missionService.getAll();
+        const missions = await this.missionService.getPendingRoutines();
 
         if (missions.length > 0) {
             const mission = missions[0];

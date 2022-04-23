@@ -7,7 +7,13 @@ import moment from 'moment';
 export class MissionService {
     prisma = new PrismaClient();
 
-    async getAll(): Promise<Array<Routine & { waypoints: Waypoint[] }>> {
+    async getAll(): Promise<Routine[]> {
+        return this.prisma.routine.findMany();
+    }
+
+    async getPendingRoutines(): Promise<
+        Array<Routine & { waypoints: Waypoint[] }>
+    > {
         const now = moment();
         const currentHour = now.hours() + now.minutes() / 60.0;
         const currentDay = circularOffset({
@@ -85,13 +91,21 @@ export class MissionService {
         ).map((it) => it.hash);
     }
 
-    async markCompleted(mission: Routine) {
+    async markCompleted(mission: Routine, is_cancel: boolean) {
         await this.prisma.routine.update({
             where: {
                 id: mission.id,
             },
             data: {
                 executedAt: moment().dayOfYear(),
+            },
+        });
+
+        await this.prisma.history.create({
+            data: {
+                status: is_cancel ? 'Cancelado' : 'Completado',
+                executedAt: moment().toDate(),
+                routine_hash: mission.hash,
             },
         });
     }
@@ -121,7 +135,7 @@ export class MissionService {
             routine_hash: string;
         }>;
     }) {
-        this.prisma.$transaction([
+        await this.prisma.$transaction([
             ...data.routines.map((data) =>
                 this.prisma.routine.create({ data }),
             ),
@@ -132,7 +146,8 @@ export class MissionService {
     }
 
     async deleteAll() {
-        await this.prisma.routine.deleteMany();
+        const del = await this.prisma.routine.deleteMany();
+        console.log('🗑️', del.count, 'records deleted');
     }
 
     async delete(id: number) {
