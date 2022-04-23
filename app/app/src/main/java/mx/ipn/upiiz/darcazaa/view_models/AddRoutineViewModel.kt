@@ -15,6 +15,7 @@ import mx.ipn.upiiz.darcazaa.data.models.Routine
 import mx.ipn.upiiz.darcazaa.data.models.Waypoint
 import mx.ipn.upiiz.darcazaa.data.models.areaTsp
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class AddRoutineViewModel @Inject constructor(
@@ -46,7 +47,8 @@ class AddRoutineViewModel @Inject constructor(
                     repeat.value,
                     title.value,
                     false,
-                    PolyUtil.encode(selectedPolygon)
+                    PolyUtil.encode(selectedPolygon),
+                    Random.nextInt().toUInt().toString(16)
                 )
                 routineRepository.addRoutine(routine)
                 routineRepository.addWaypoints(areaTsp(selectedPolygon).mapIndexed { index, latLng ->

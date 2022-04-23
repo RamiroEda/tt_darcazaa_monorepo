@@ -18,7 +18,7 @@ interface ConnectionRepository {
     fun connectionStatus(): Flow<Boolean>
     fun urlChanges(): Flow<String?>
     fun syncingStatus(): Flow<SyncingStatus>
-    fun hashesChanges(): Flow<List<String>>
+    fun routinesChanges(): Flow<List<Routine>>
     suspend fun syncRoutines(routines: List<RoutineWithWaypoints>)
     fun emitData()
 }
@@ -55,14 +55,27 @@ class ConnectionSocketIORepository(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun hashesChanges(): Flow<List<String>> = callbackFlow {
-        socketProvider.socket.on("hashes"){
+    override fun routinesChanges(): Flow<List<Routine>> = callbackFlow {
+        socketProvider.socket.on("routines"){
             val hashes = it.firstOrNull()
             if(hashes is JSONArray){
-                val hashesList = mutableListOf<String>()
+                val hashesList = mutableListOf<Routine>()
 
                 for (i in 0 until hashes.length()){
-                    hashesList.add(hashes[i] as String)
+                    val routine = hashes.getJSONObject(i)
+                    hashesList.add(
+                        Routine(
+                            id = routine.getInt("id"),
+                            start = routine.getDouble("start"),
+                            repeat = routine.getString("repeat"),
+                            title = routine.getString("title"),
+                            isSynced = true,
+                            hash = routine.getString("hash"),
+                            executedAt = if(!routine.isNull("executedAt")){
+                                routine.getInt("executedAt")
+                            }else null
+                        )
+                    )
                 }
 
                 trySend(hashesList)

@@ -59,11 +59,27 @@ class ConnectionViewModel @Inject constructor(
 
     private fun listenToHashes() = viewModelScope.launch {
         kotlin.runCatching {
-            connectionRepository.hashesChanges().collect {
+            connectionRepository.routinesChanges().collect {
                 withContext(Dispatchers.Default){
+                    val localRoutines = routineRepository.getAll()
+                    val incomingHashes = it.map { it.hash }
+
+                    for (localRoutine in localRoutines) {
+                        val remoteRoutine = it.find { it.hash == localRoutine.routine.hash }
+
+                        if (remoteRoutine != null) {
+                            if (remoteRoutine.repeat == "" && remoteRoutine.executedAt != null){
+                                routineRepository.delete(remoteRoutine.id)
+                            }
+                        }
+                    }
+
                     val localHashes = routineRepository.getAll().map { it.routine.hash }
 
-                    if (!(it.containsAll(localHashes) && localHashes.containsAll(it))){
+                    println(localHashes)
+                    println(incomingHashes)
+
+                    if (!(incomingHashes.containsAll(localHashes) && localHashes.containsAll(incomingHashes))){
                         routineRepository.markAllAsUnSynced()
                         syncRoutines()
                     }

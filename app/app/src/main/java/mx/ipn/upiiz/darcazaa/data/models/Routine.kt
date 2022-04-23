@@ -17,9 +17,11 @@ data class Routine(
     @ColumnInfo(name = "is_synced")
     val isSynced: Boolean,
     @ColumnInfo(name = "polygon")
-    val polygon: String,
+    val polygon: String = "",
     @ColumnInfo(name = "hash")
-    val hash: String = this.hashCode().toUInt().toString(16),
+    val hash: String,
+    @ColumnInfo(name = "executedAt")
+    val executedAt: Int? = null,
 ) : Parcelable {
 
 
@@ -29,21 +31,10 @@ data class Routine(
         parcel.readString()!!,
         parcel.readString()!!,
         parcel.readByte() != 0.toByte(),
-        parcel.readString()!!
+        parcel.readString()!!,
+        parcel.readString()!!,
+        parcel.readValue(Int::class.java.classLoader) as Int?
     ) {
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return super.equals(other)
-    }
-
-    override fun hashCode(): Int {
-        var result = id
-        result = 31 * result + start.hashCode()
-        result = 31 * result + repeat.hashCode()
-        result = 31 * result + title.hashCode()
-        result = 31 * result + polygon.hashCode()
-        return result
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -53,6 +44,8 @@ data class Routine(
         parcel.writeString(title)
         parcel.writeByte(if (isSynced) 1 else 0)
         parcel.writeString(polygon)
+        parcel.writeString(hash)
+        parcel.writeValue(executedAt)
     }
 
     override fun describeContents(): Int {

@@ -7,11 +7,8 @@ import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +41,7 @@ fun RoutineItem(
     Card(
         modifier = Modifier
             .padding(vertical = 8.dp)
+            .clip(androidx.compose.material.MaterialTheme.shapes.medium)
             .combinedClickable(
                 onClick = {
                     context.startActivity(Intent(context, RoutineInfoActivity::class.java).also {
@@ -54,11 +52,10 @@ fun RoutineItem(
                     showDeleteDialog = true
                 }
             )
-            .clip(androidx.compose.material.MaterialTheme.shapes.medium)
             .height(92.dp)
             .fillMaxWidth(),
         backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-        border = if (chargingStationViewModel.currentRoutine.value?.routine?.id == routineWithWaypoints.routine.id){
+        border = if (chargingStationViewModel.currentRoutine.value?.routine?.hash == routineWithWaypoints.routine.hash){
             BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary)
         }else null
     ) {

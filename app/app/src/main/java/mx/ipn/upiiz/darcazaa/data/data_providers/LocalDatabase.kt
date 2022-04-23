@@ -13,7 +13,7 @@ import mx.ipn.upiiz.darcazaa.data.repositories.RoutineRepository
         Routine::class,
         Waypoint::class
     ],
-    version = 4,
+    version = 5,
 )
 abstract class LocalDatabase: RoomDatabase() {
     companion object{

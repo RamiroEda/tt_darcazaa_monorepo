@@ -1,6 +1,8 @@
 package mx.ipn.upiiz.darcazaa.data.hilt
 
 import android.app.Application
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,6 +16,7 @@ import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.data.repositories.*
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.util.*
 import javax.inject.Singleton
 
 @Module
@@ -53,10 +56,10 @@ object ApplicationModule {
 
     @Singleton
     @Provides
-    fun provideRetrofitBuilder(
-        app: Application
-    ) = Retrofit.Builder()
-        .addConverterFactory(MoshiConverterFactory.create())
+    fun provideRetrofitBuilder(): Retrofit.Builder = Retrofit.Builder()
+        .addConverterFactory(MoshiConverterFactory.create(
+            Moshi.Builder().add(Date::class.java, Rfc3339DateJsonAdapter().nullSafe()).build()
+        ))
 
     @Singleton
     @Provides
