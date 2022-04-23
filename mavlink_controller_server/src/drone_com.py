@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import geopy.distance
 from datetime import datetime
 from threading import Thread
@@ -61,8 +62,8 @@ class DroneCom:
         
         if self.vehicle_start_mission_battery is not None:
             (start, level) = self.vehicle_start_mission_battery
-            timediff = datetime.now() - start
             leveldiff = battery.level - level
+            timediff = datetime.now() - start
             
             if timediff.seconds == 0:
                 return
@@ -72,7 +73,7 @@ class DroneCom:
             if discharge_speed == 0:
                 return
             
-            until_discharge = battery.level - 5 / discharge_speed
+            until_discharge = battery.level / discharge_speed
             
             if self.vehicle.airspeed == 0:
                 return
@@ -97,19 +98,17 @@ class DroneCom:
         if(self.vehicle is None):
             return
         
-        self.print("New status: %s" % status.state)
-        
         self.send_message("system_status", {
             "status": status.state,
             "canceled": self.is_cancel
         })
         
         if status.state == "STANDBY":
-            self.clear_commands()
+            self.send_message("status", MissionStatus.IDLE.value)
+            self.send_message("current_mission", NULL)
             self.is_cancel = False
             self.vehicle_start_mission_battery = None
-            self.send_message("current_mission", None)
-            self.send_message("status", MissionStatus.IDLE.value)
+            self.clear_commands()
         if status.state == "CRITICAL" or status.state == "EMERGENCY":
             self.cancel_mission()
             
@@ -159,6 +158,7 @@ class DroneCom:
             0, 3, 0, direction, 1, 0, 0, 0))
         
     def clear_commands(self):
+        self.print("🗑️ Clearing drone mission")
         cmds = self.vehicle.commands
         
         cmds.clear()
