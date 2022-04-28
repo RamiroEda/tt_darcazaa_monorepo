@@ -1,5 +1,8 @@
+update:
+    poetry update
+
 install:
-    poetry update && poetry install
+    poetry install
 
 run:
     poetry run flask run
