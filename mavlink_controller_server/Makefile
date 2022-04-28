@@ -1,5 +1,5 @@
 update:
-    poetry update
+	poetry update
 
 install:
 	poetry install
