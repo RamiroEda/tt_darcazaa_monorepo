@@ -2,9 +2,6 @@ FROM toriaezunama/prisma-arm32v7:node-14
 
 WORKDIR /usr/app
 
-RUN apt-get -qy update
-RUN apt-get -qy install openssl
-
 COPY . .
 
 RUN npm install
