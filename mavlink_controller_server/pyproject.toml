@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "tt_darcazaa_charging_base_mavlink"
-version = "0.1.0"
+name = "src"
+version = "1.0.0"
 description = ""
 authors = ["RamiroEda <ramiroestradag@gmail.com>"]
 license = "MIT"

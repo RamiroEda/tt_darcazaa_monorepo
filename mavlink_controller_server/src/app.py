@@ -1,7 +1,10 @@
+from time import sleep
 from flask import Flask
 import socketio
 from constants import FLASK_ENV, WEBSOCKET_SERVER
 from drone_com import DroneCom
+
+sleep(2)
 
 app = Flask(__name__)
 ws = socketio.Client()

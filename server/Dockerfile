@@ -1,19 +1,15 @@
-FROM node:16-alpine
+FROM node:16-buster
 
 WORKDIR /usr/app
 
-# first copy just the package and the lock file, for caching purposes
-COPY package.json ./
-COPY yarn.lock ./
+RUN apt-get -qy update
+RUN apt-get -qy install openssl
 
-# install dependencies
-RUN yarn
-
-# copy the entire project
 COPY . .
 
-# build
-RUN yarn build
+RUN npm install
+RUN npx prisma generate
+RUN npm run build
 
-EXPOSE 3000
-CMD [ "yarn", "start" ]
+EXPOSE 4000
+CMD [ "npm", "start" ]

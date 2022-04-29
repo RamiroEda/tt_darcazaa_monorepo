@@ -1,0 +1,25 @@
+version: '3.9'
+services:
+  server:
+    build: ./server
+    environment:
+      - PORT=4000
+    ports:
+      - "4000"
+  mavlink:
+    build: ./mavlink_controller_server
+    environment:
+      - FLASK_APP=src/app.py
+      - FLASK_ENV=development
+      - FLASK_DEBUG=true
+      - FLASK_RUN_PORT=5000
+      - WEBSOCKET_SERVER=http://server:4000
+      - DRONE_IP=tcp:127.0.0.1:5762
+      - WAYPOINT_ACCEPTANCE_RADIUS=5
+      - DRONE_ALTITUDE=30
+      - MINIMUM_BATTERY=15
+      - MINIMUM_BATTERY_TO_START=75
+      - MAX_WINDSPEED=8.333333
+    ports:
+      - "3000"
+    
