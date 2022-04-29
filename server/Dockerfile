@@ -1,4 +1,4 @@
-FROM jaywizard/prisma-arm64:latest
+FROM toriaezunama/prisma-arm32v7:node-14
 
 WORKDIR /usr/app
 
