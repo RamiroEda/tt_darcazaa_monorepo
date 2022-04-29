@@ -6,6 +6,7 @@ services:
       - PORT=4000
     ports:
       - "4000"
+    restart: always
   mavlink:
     build: ./mavlink_controller_server
     environment:
@@ -22,4 +23,5 @@ services:
       - MAX_WINDSPEED=8.333333
     ports:
       - "3000"
+    restart: always
     

@@ -1,4 +1,4 @@
-FROM node:16-buster
+FROM jaywizard/prisma-arm64:latest
 
 WORKDIR /usr/app
 
