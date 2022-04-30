@@ -1,6 +1,7 @@
 package mx.ipn.upiiz.darcazaa.ui.screens
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -29,13 +30,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import dagger.hilt.android.AndroidEntryPoint
+import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
+import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
+import mx.ipn.upiiz.darcazaa.data.models.WebSocketDataSource
 import mx.ipn.upiiz.darcazaa.ui.components.VideoPlayer
 import mx.ipn.upiiz.darcazaa.ui.components.rememberExoPlayer
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
 import mx.ipn.upiiz.darcazaa.view_models.DriverViewModel
+import javax.inject.Inject
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -49,36 +55,31 @@ class DriverActivity : AppCompatActivity() {
     private val driverViewModel: DriverViewModel by viewModels()
     private val chargingStationViewModel: ChargingStationViewModel by viewModels()
 
+    @Inject
+    lateinit var preferences: UserPreferences
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         setContent {
             val exoPlayer = rememberExoPlayer()
 
             DARCAZAATheme {
                 Scaffold(
-                    containerColor = Color.Black
+                    containerColor = Color.White
                 ) {
+                    VideoPlayer(
+                        modifier = Modifier.fillMaxSize(),
+                        exoPlayer = exoPlayer,
+                    )
+
                     Box(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         var isDrivingEnabled by remember {
                             mutableStateOf(false)
-                        }
-
-                        VideoPlayer(
-                            modifier = Modifier.fillMaxSize(),
-                            exoPlayer = exoPlayer
-                        )
-
-                        if (chargingStationViewModel.videoStreamUri.value == null) {
-                            Text(
-                                modifier = Modifier.align(Alignment.Center),
-                                text = "Esperando señal de video...",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White
-                            )
                         }
 
                         Box(
@@ -103,7 +104,7 @@ class DriverActivity : AppCompatActivity() {
                                     .clip(CircleShape)
                                     .background(
                                         MaterialTheme.colorScheme.primaryContainer.copy(
-                                            alpha = 0.1f
+                                            alpha = 0.3f
                                         )
                                     )
                             ) {}
@@ -285,21 +286,15 @@ class DriverActivity : AppCompatActivity() {
                 }
             }
             LaunchedEffect(key1 = exoPlayer) {
-                snapshotFlow { chargingStationViewModel.videoStreamUri.value }.collect {
-                    if (it != null) {
-                        exoPlayer.setMediaItem(
-                            MediaItem.Builder().setUri(it).setLiveConfiguration(
-                                MediaItem.LiveConfiguration.Builder().setMaxPlaybackSpeed(1.02f)
-                                    .build()
-                            ).build()
-                        )
-                        exoPlayer.prepare()
-                        exoPlayer.play()
-                    } else {
-                        exoPlayer.clearMediaItems()
-                        exoPlayer.stop()
-                    }
-                }
+                exoPlayer.setMediaSource(
+                    ProgressiveMediaSource.Factory(WebSocketDataSource.Factory()).createMediaSource(
+                        MediaItem
+                            .fromUri("ws://${preferences.get(PreferenceKeys.Url)}/camera")
+                    )
+                )
+                exoPlayer.prepare()
+                exoPlayer.playWhenReady = true
+                exoPlayer.play()
             }
         }
     }

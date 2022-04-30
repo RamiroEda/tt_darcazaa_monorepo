@@ -26,7 +26,6 @@ class ChargingStationViewModel @Inject constructor(
     val position = mutableStateOf<LatLngAlt?>(null)
     val routines = mutableStateListOf<RoutineWithWaypoints>()
     val currentRoutine = mutableStateOf<RoutineWithWaypoints?>(null)
-    val videoStreamUri = mutableStateOf<String?>(null)
 
     private val routineRepository = localDatabase.routineRepository()
 
@@ -36,7 +35,6 @@ class ChargingStationViewModel @Inject constructor(
         listenPosition()
         listenRoutines()
         listenCurrentRoutine()
-        listenVideoStreamUri()
         emitData()
     }
 
@@ -50,12 +48,6 @@ class ChargingStationViewModel @Inject constructor(
             }catch (e: Exception){
                 e.printStackTrace()
             }
-        }
-    }
-
-    private fun listenVideoStreamUri() = viewModelScope.launch {
-        chargingStationRepository.videoUri().collect {
-            videoStreamUri.value = it
         }
     }
 

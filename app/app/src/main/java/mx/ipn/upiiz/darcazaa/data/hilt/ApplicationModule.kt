@@ -14,6 +14,7 @@ import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.data.repositories.*
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.*
@@ -45,8 +46,9 @@ object ApplicationModule {
     @Provides
     fun provideDroneRepository(
         socket: SocketProvider,
-        localDatabase: LocalDatabase
-    ): ChargingStationRepository = DroneSocketIORepository(socket, localDatabase)
+        localDatabase: LocalDatabase,
+        preferences: UserPreferences
+    ): ChargingStationRepository = DroneSocketIORepository(socket, localDatabase, preferences)
 
     @Singleton
     @Provides
@@ -70,4 +72,8 @@ object ApplicationModule {
         preferences,
         builder
     )
+
+    @Singleton
+    @Provides
+    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder().build()
 }
