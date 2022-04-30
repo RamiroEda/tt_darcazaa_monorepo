@@ -24,7 +24,6 @@ CREATE TABLE "History" (
     "routine_hash" TEXT NOT NULL,
     "executedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "status" TEXT NOT NULL,
-    CONSTRAINT "History_routine_hash_fkey" FOREIGN KEY ("routine_hash") REFERENCES "Routine" ("hash") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateIndex

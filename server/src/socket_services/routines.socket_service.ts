@@ -14,10 +14,12 @@ import { MissionStatus } from '@/models/mission_status';
 import { Inject } from '@tsed/di';
 import { Routine } from '@prisma/client';
 import { SystemStatus } from '@/models/system_status';
+import { CameraSocketService } from './camera.socket_service';
 
 @SocketService('/routines')
 export class RoutinesSocketService {
     @Inject() missionService!: MissionService;
+    @Inject() cameraSocketService!: CameraSocketService;
 
     @Nsp nsp?: SocketIO.Namespace;
 
@@ -31,8 +33,7 @@ export class RoutinesSocketService {
     currentMission?: Routine;
     systemStatus?: SystemStatus;
     windspeed = 0;
-    streamUri?: string =
-        'rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mp4'; //TODO: ELIMINAR
+    streamUrl?: string;
 
     $onConnection(
         @Socket socket: SocketIO.Socket,
@@ -96,9 +97,6 @@ export class RoutinesSocketService {
         }
         if (this.location) {
             socket.emit('location', this.location);
-        }
-        if (this.streamUri) {
-            socket.emit('camera_stream_uri', this.streamUri);
         }
         socket.emit('current_mission', this.currentMission);
         socket.emit('routines', await this.missionService.getAll());
@@ -192,12 +190,12 @@ export class RoutinesSocketService {
     }
 
     @Input('camera_stream_uri')
-    @Broadcast('camera_stream_uri')
-    cameraStreamUri(@Args(0) uri: string) {
-        console.log(`📺 Stream URI at ${uri}`);
+    cameraStreamUrl(@Args(0) url: string) {
+        console.log(`📺 Stream URI at ${url}`);
 
-        this.streamUri = uri;
-        return this.streamUri;
+        this.streamUrl = url;
+        this.cameraSocketService.changeUrl(url);
+        return this.streamUrl;
     }
 
     @Input('rotate')

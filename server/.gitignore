@@ -9,4 +9,4 @@ yarn-error.log
 # vscode config
 # .vscode
 
-**/dev.db
+**/dev.db*

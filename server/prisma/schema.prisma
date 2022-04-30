@@ -20,7 +20,6 @@ model Routine {
   title       String
   executedAt  Int?
   waypoints   Waypoint[]
-  executions  History[]
 }
 
 model Waypoint {
@@ -35,7 +34,6 @@ model Waypoint {
 model History {
   id            Int       @id @default(autoincrement())
   routine_hash  String
-  routine       Routine   @relation(fields: [routine_hash], references: [hash])
   executedAt    DateTime  @default(now())
   status        String
 }
