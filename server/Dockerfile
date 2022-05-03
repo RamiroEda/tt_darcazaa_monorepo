@@ -11,6 +11,8 @@ COPY --from=prisma /prisma-engines/query-engine /prisma-engines/migration-engine
 
 WORKDIR /usr/app
 
+RUN apk add --no-cache openssl-dev
+
 COPY . .
 
 RUN npm install
