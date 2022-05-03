@@ -9,7 +9,7 @@ ENV PRISMA_QUERY_ENGINE_BINARY=/prisma-engines/query-engine \
   PRISMA_CLIENT_ENGINE_TYPE=binary
 COPY --from=prisma /prisma-engines/query-engine /prisma-engines/migration-engine /prisma-engines/introspection-engine /prisma-engines/prisma-fmt /prisma-engines/
 
-RUN ls /prisma-engines
+RUN ls -d /
 
 WORKDIR /usr/app
 
