@@ -82,7 +82,13 @@ export class Server implements BeforeRoutesInit, AfterRoutesInit {
                         `\n\nIP para ${netInterface[0]}: ${net.address}:${PORT}`,
                     );
 
-                    qrTerminal.generate(`${net.address}:${PORT}`);
+                    qrTerminal.generate(
+                        JSON.stringify({
+                            ip: `${net.address}:${PORT}`,
+                            ssid: `DARCAZAA`,
+                            pass: `12345678`,
+                        }),
+                    );
                     console.log('\n\n');
                 }
             }
