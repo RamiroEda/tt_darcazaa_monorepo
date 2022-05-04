@@ -11,7 +11,7 @@ import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
 import schedule = require('node-schedule');
 import { RoutinesSocketService } from './socket_services/routines.socket_service';
-import { PORT } from './constants';
+import { HOST_IP, PORT } from './constants';
 import axios = require('axios');
 import qrTerminal = require('qrcode-terminal');
 import os = require('os');
@@ -73,34 +73,54 @@ export class Server implements BeforeRoutesInit, AfterRoutesInit {
     }
 
     private printNetworkInterfaces() {
-        const interfaces = Object.entries(os.networkInterfaces());
+        if(HOST_IP){
+            console.log(
+                `\n\nIP del Host: ${HOST_IP}:${PORT}`,
+            );
 
-        for (const netInterface of interfaces) {
-            for (const net of netInterface[1] ?? []) {
-                if (net.family === 'IPv4' && !net.internal) {
-                    console.log(
-                        `\n\nIP para ${netInterface[0]}: ${net.address}:${PORT}`,
-                    );
+            qrTerminal.generate(
+                JSON.stringify({
+                    ip: `${HOST_IP}:${PORT}`,
+                    ssid: `DARCAZAA`,
+                    pass: `12345678`,
+                }),
+            );
 
-                    qrTerminal.generate(
-                        JSON.stringify({
-                            ip: `${net.address}:${PORT}`,
-                            ssid: `DARCAZAA`,
-                            pass: `12345678`,
-                        }),
-                    );
-                    console.log('\n\n');
+            console.log('\n\n');
+        }else{
+            const interfaces = Object.entries(os.networkInterfaces());
+
+            for (const netInterface of interfaces) {
+                for (const net of netInterface[1] ?? []) {
+                    if (net.family === 'IPv4' && !net.internal) {
+                        console.log(
+                            `\n\nIP para ${netInterface[0]}: ${net.address}:${PORT}`,
+                        );
+
+                        qrTerminal.generate(
+                            JSON.stringify({
+                                ip: `${net.address}:${PORT}`,
+                                ssid: `DARCAZAA`,
+                                pass: `12345678`,
+                            }),
+                        );
+                        console.log('\n\n');
+                    }
                 }
             }
         }
     }
 
     private async checkWeather() {
-        const response = await axios.default.get(
-            'https://api.openweathermap.org/data/2.5/weather?lat=22.73897&lon=-102.66891&appid=28df6777f87bddccdea41dd51c9446a6', //TODO: LatLng dinamico
-        );
-
-        this.routinesService.setWindspeed(response.data.wind.speed);
+        try{
+            const response = await axios.default.get(
+                'https://api.openweathermap.org/data/2.5/weather?lat=22.73897&lon=-102.66891&appid=28df6777f87bddccdea41dd51c9446a6', //TODO: LatLng dinamico
+            );
+    
+            this.routinesService.setWindspeed(response.data.wind.speed);
+        }catch(e){
+            console.log("🌐 No internet connection");
+        }
     }
 
     private async checkPendingRoutines() {
