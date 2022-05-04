@@ -23,7 +23,7 @@ CREATE TABLE "History" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "routine_hash" TEXT NOT NULL,
     "executedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "status" TEXT NOT NULL,
+    "status" TEXT NOT NULL
 );
 
 -- CreateIndex

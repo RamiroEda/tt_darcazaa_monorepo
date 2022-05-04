@@ -4,7 +4,7 @@ import socketio
 from constants import FLASK_ENV, WEBSOCKET_SERVER
 from drone_com import DroneCom
 
-sleep(2)
+sleep(10)
 
 app = Flask(__name__)
 ws = socketio.Client()

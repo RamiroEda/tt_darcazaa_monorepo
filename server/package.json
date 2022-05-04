@@ -6,7 +6,7 @@
     "author": "",
     "license": "MIT",
     "scripts": {
-        "build": "prisma generate && tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
+        "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
         "start": "node ./dist/app.js",
         "lint": "eslint --fix --quiet src/**/*.ts",
         "format": "prettier --loglevel silent --write src/**/*.ts",
