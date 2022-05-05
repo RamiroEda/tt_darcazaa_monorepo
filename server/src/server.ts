@@ -1,3 +1,4 @@
+import { BaseController } from './controllers/base.controller';
 import { MissionService } from './services/mission.service';
 import { Configuration, Inject } from '@tsed/di';
 import {
@@ -14,7 +15,6 @@ import { RoutinesSocketService } from './socket_services/routines.socket_service
 import { PORT } from './constants';
 import axios = require('axios');
 import qrTerminal = require('qrcode-terminal');
-import os = require('os');
 import { HistoryController } from './controllers/history.controller';
 import '@tsed/socketio';
 import '@tsed/platform-express';
@@ -28,7 +28,7 @@ const rootDir = __dirname;
     socketIO: {},
     port: PORT,
     mount: {
-        '/': [HistoryController],
+        '/': [HistoryController, BaseController],
     },
     logger: {
         disableRoutesSummary: true,
@@ -43,6 +43,9 @@ export class Server implements BeforeRoutesInit, AfterRoutesInit {
 
     @Inject()
     routinesSocketService!: RoutinesSocketService;
+
+    @Inject()
+    baseController!: BaseController;
 
     @Configuration()
     settings!: Configuration;
@@ -72,29 +75,26 @@ export class Server implements BeforeRoutesInit, AfterRoutesInit {
         this.printNetworkInterfaces();
     }
 
-    private printNetworkInterfaces() {
-        const interfaces = Object.entries(os.networkInterfaces());
+    private async printNetworkInterfaces() {
+        const networks = await this.baseController.getNetworks();
 
-        for (const netInterface of interfaces) {
-            for (const net of netInterface[1] ?? []) {
-                if (net.family === 'IPv4' && !net.internal) {
-                    console.log(
-                        `\n\nIP para ${netInterface[0]}: ${net.address}:${PORT}`,
-                    );
+        networks.forEach((it) => {
+            console.log(it);
 
-                    qrTerminal.generate(`${net.address}:${PORT}`);
-                    console.log('\n\n');
-                }
-            }
-        }
+            qrTerminal.generate(it);
+        });
     }
 
     private async checkWeather() {
-        const response = await axios.default.get(
-            'https://api.openweathermap.org/data/2.5/weather?lat=22.73897&lon=-102.66891&appid=28df6777f87bddccdea41dd51c9446a6', //TODO: LatLng dinamico
-        );
+        try {
+            const response = await axios.default.get(
+                'https://api.openweathermap.org/data/2.5/weather?lat=22.73897&lon=-102.66891&appid=28df6777f87bddccdea41dd51c9446a6', //TODO: LatLng dinamico
+            );
 
-        this.routinesService.setWindspeed(response.data.wind.speed);
+            this.routinesService.setWindspeed(response.data.wind.speed);
+        } catch (e) {
+            console.log('🌐 No internet connection');
+        }
     }
 
     private async checkPendingRoutines() {

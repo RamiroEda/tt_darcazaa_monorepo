@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -21,7 +22,9 @@ import mx.ipn.upiiz.darcazaa.data.models.BarcodeTypes
 import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SocketProvider
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
+import mx.ipn.upiiz.darcazaa.utils.connectToWifiNetwork
 import mx.ipn.upiiz.darcazaa.utils.isValidIP
+import org.json.JSONObject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,10 +32,27 @@ fun NotConnectedCard(
     preferences: UserPreferences,
     socketProvider: SocketProvider
 ) {
+    val context = LocalContext.current
     val scannerContract = rememberLauncherForActivityResult(contract = QRCodeContract()){
-        if(it != null && it.isValidIP()){
-            preferences.set(PreferenceKeys.Url, it)
-            socketProvider.socket = IO.socket("ws://$it/routines", ioOptions)
+        if (it != null) {
+            runCatching {
+                JSONObject(it).also { json ->
+                    assert(json.has("ip")){"No IP"}
+                    assert(json.has("ssid")){"No SSID"}
+                    assert(json.has("pass")){"No Password"}
+                }
+            }.onSuccess { json ->
+                val ip = json.getString("ip")
+                if (ip.isValidIP()){
+                    preferences.set(PreferenceKeys.Url, ip)
+                    socketProvider.socket = IO.socket("ws://$ip/routines", ioOptions)
+
+                    context.connectToWifiNetwork(
+                        json.getString("ssid"),
+                        json.getString("pass")
+                    )
+                }
+            }
         }
     }
     Scaffold {
@@ -67,7 +87,6 @@ fun NotConnectedCard(
                     Button(
                         modifier = Modifier.padding(top = 32.dp),
                         onClick = {
-//                            context.startActivity(Intent(context, EnterIPActivity::class.java))
                             scannerContract.launch(listOf(BarcodeTypes.QRCode))
                         },
                     ) {
