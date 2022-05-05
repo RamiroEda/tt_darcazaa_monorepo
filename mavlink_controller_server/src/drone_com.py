@@ -1,5 +1,4 @@
 import geopy.distance
-from serial import Serial
 from datetime import datetime
 from threading import Thread
 from time import sleep
@@ -52,13 +51,8 @@ class DroneCom:
             "heading": self.vehicle.heading
         })
     
-    def receive_serial_camera(self):
-        try:
-            serial = Serial(DRONE_IP, 57600)
-            while True:
-                self.send_message("camera_data", serial.readline())
-        except:
-            print("⚠️ Serial video streaming not supported")
+    def receive_serial_camera(self, buffer: bytearray):
+        self.send_message("camera_data", buffer)
 
     def on_battery_update(self, attr_name: str, aux: any, battery: Battery):
         if(self.vehicle is None):
@@ -189,14 +183,13 @@ class DroneCom:
             self.cancel_mission()
             
     def message_debug(self, a, b, c): 
-            if b == "CAMERA_INFORMATION":
-                self.print("Message %s" % (b))  
+        self.print("Message %s" % (b))  
         
     def connect(self):
           
         try:
             self.print("🧩 Connecting to drone at %s" % DRONE_IP)
-            self.vehicle = connect(DRONE_IP, wait_ready=True)
+            self.vehicle = connect(DRONE_IP, wait_ready=True,baud=57600)
             self.vehicle.groundspeed = GROUND_SPEED
             self.vehicle.commands.download()
             self.vehicle.commands.wait_ready()
