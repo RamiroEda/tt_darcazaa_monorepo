@@ -1,6 +1,6 @@
 import { PlatformApplication } from '@tsed/common';
 import { Inject } from '@tsed/di';
-import { Nsp, SocketService } from '@tsed/socketio';
+import { Args, Input, Nsp, SocketService } from '@tsed/socketio';
 import * as SocketIO from 'socket.io';
 import rstp from 'rtsp-relay';
 
@@ -27,6 +27,13 @@ export class CameraSocketService {
     changeUrl(url: string) {
         this.url = url;
         this.initListener();
+    }
+
+    @Input('camera_data')
+    sendCamedaBuffer(@Args(0) data: any) {
+        console.log(data);
+
+        this.nsp.send(data);
     }
 
     initListener() {

@@ -1,4 +1,5 @@
 import geopy.distance
+from serial import Serial
 from datetime import datetime
 from threading import Thread
 from time import sleep
@@ -8,7 +9,7 @@ from pymavlink import mavutil
 from models.lat_lng import LatLng
 from models.mission_status import MissionStatus
 from pymavlink.dialects.v20 import common
-from constants import DRONE_ALTITUDE, DRONE_IP, GROUND_SPEED, MAX_WINDSPEED, MINIMUM_BATTERY, MINIMUM_BATTERY_TO_START, WAYPOINT_ACCEPTANCE_RADIUS
+from constants import DRONE_ALTITUDE, DRONE_IP, GROUND_SPEED, MAX_WINDSPEED, MINIMUM_BATTERY_TO_START, WAYPOINT_ACCEPTANCE_RADIUS
 
 class DroneCom:
     send_message_listeners: List[Callable[[str, any], None]] = []
@@ -21,12 +22,13 @@ class DroneCom:
     def __init__(self, debug: bool):
         self.debug = debug
         Thread(target=self._worker).start()
+        Thread(target=self.receive_serial_camera).start()
         
     def _worker(self):
         while(True):
             if(self.vehicle is None):
                 self.connect()
-            sleep(1)
+            sleep(2)
 
     def parse_mission(self, data: any) -> List[LatLng]:
         points: List[LatLng] = []
@@ -49,10 +51,19 @@ class DroneCom:
             "speed": self.vehicle.airspeed,
             "heading": self.vehicle.heading
         })
+    
+    def receive_serial_camera(self):
+        try:
+            serial = Serial(DRONE_IP, 57600)
+            while True:
+                self.send_message("camera_data", serial.readline())
+        except:
+            print("⚠️ Serial video streaming not supported")
 
     def on_battery_update(self, attr_name: str, aux: any, battery: Battery):
         if(self.vehicle is None):
             return
+        
         self.send_message("battery", {
             "current": battery.current,
             "level": battery.level,
@@ -113,15 +124,11 @@ class DroneCom:
             self.cancel_mission()
             
     def on_camera_information_update(self, attr_name:str, message: common.MAVLink_camera_information_message):
+        print("📨 New message: Camera information")
         if message.flags and common.CAMERA_CAP_FLAGS_HAS_VIDEO_STREAM == 0 :
             print("⚠️ Video streaming not supported")
         else:
-            self.vehicle.message_factory.command_long_encode(
-                0, 0,
-                common.MAV_CMD_REQUEST_MESSAGE,
-                0,
-                269, 0, 0, 0, 0, 0, 0
-            )
+            self.request_message(269)
 
     
     def on_video_stream_information_update(self, name: str, message: common.MAVLink_video_stream_information_message):
@@ -180,8 +187,13 @@ class DroneCom:
         self.windspeed = speed
         if self.windspeed > MAX_WINDSPEED:
             self.cancel_mission()
+            
+    def message_debug(self, a, b, c): 
+            if b == "CAMERA_INFORMATION":
+                self.print("Message %s" % (b))  
         
     def connect(self):
+          
         try:
             self.print("🧩 Connecting to drone at %s" % DRONE_IP)
             self.vehicle = connect(DRONE_IP, wait_ready=True)
@@ -195,16 +207,18 @@ class DroneCom:
             self.vehicle.add_attribute_listener("commands", self.on_commands_update)
             self.vehicle.add_message_listener("CAMERA_INFORMATION", self.on_camera_information_update)
             self.vehicle.add_message_listener("VIDEO_STREAM_INFORMATION", self.on_video_stream_information_update)
+            self.vehicle.add_message_listener("*", self.message_debug)
+            self.request_message(259)
         except:
             self.vehicle = None
             
-    def init_camera(self):
+    def request_message(self, message: int):
         self.vehicle.send_mavlink(
             self.vehicle.message_factory.command_long_encode(
                 0, 0,
                 common.MAV_CMD_REQUEST_MESSAGE,
                 0,
-                259, 0, 0, 0, 0, 0, 0
+                message, 0, 0, 0, 0, 0, 0
             )
         )
 
@@ -215,7 +229,7 @@ class DroneCom:
             })
             return
 
-        self.init_camera()
+        self.request_message(259)
 
         if self.vehicle.system_status.state != "STANDBY":
             return
