@@ -6,7 +6,7 @@ authors = ["RamiroEda <ramiroestradag@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.8"
 flask = "^1.1.2"
 dronekit = "^2.9.2"
 python-socketio = "^5.5.1"
@@ -14,6 +14,8 @@ requests = "^2.27.1"
 websocket-client = "^1.2.3"
 pymavlink = "^2.4.19"
 geopy = "^2.2.0"
+pyserial = "^3.5"
+numpy = "^1.22.3"
 
 [tool.poetry.dev-dependencies]
 python-dotenv = "^0.14.0"

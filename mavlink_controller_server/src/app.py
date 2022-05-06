@@ -46,10 +46,16 @@ def mission(event: str, data: any):
     
 @mavlink.on_send_message
 def send_message(event: str, message: any):
-    ws.emit(event, message, namespace = "/routines")
+    try:
+        ws.emit(event, message, namespace = "/routines")
+    except:
+        pass
     
 print("🧩 Connecting to Websocket Server at %s" % WEBSOCKET_SERVER)
-ws.connect(
-    WEBSOCKET_SERVER, 
-    namespaces=["/routines"],
-)
+try:
+    ws.connect(
+        WEBSOCKET_SERVER, 
+        namespaces=["/routines"],
+    )
+except:
+    print("Error")

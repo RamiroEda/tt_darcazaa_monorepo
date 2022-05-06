@@ -1,3 +1,4 @@
+import chunk
 import geopy.distance
 from datetime import datetime
 from threading import Thread
@@ -8,6 +9,7 @@ from pymavlink import mavutil
 from models.lat_lng import LatLng
 from models.mission_status import MissionStatus
 from pymavlink.dialects.v20 import common
+import numpy as np
 from constants import DRONE_ALTITUDE, DRONE_IP, GROUND_SPEED, MAX_WINDSPEED, MINIMUM_BATTERY_TO_START, WAYPOINT_ACCEPTANCE_RADIUS
 
 class DroneCom:
@@ -18,10 +20,11 @@ class DroneCom:
     
     vehicle_start_mission_battery: Tuple[datetime, float] = None
     
+    image_chunks = np.empty((304, 253), dtype=np.uint8)
+    
     def __init__(self, debug: bool):
         self.debug = debug
         Thread(target=self._worker).start()
-        Thread(target=self.receive_serial_camera).start()
         
     def _worker(self):
         while(True):
@@ -51,8 +54,36 @@ class DroneCom:
             "heading": self.vehicle.heading
         })
     
-    def receive_serial_camera(self, buffer: bytearray):
-        self.send_message("camera_data", buffer)
+    def receive_serial_camera(self, attr_name: str, aux: any, buffer: any):
+        if buffer.seqnr == 0:
+            self.create_image()
+            self.image_chunks = np.empty((304, 253), dtype=np.uint8)
+        
+        print(buffer.seqnr)
+        self.image_chunks[buffer.seqnr] = buffer.data
+            
+    def create_image(self):
+        if len(self.image_chunks) == 0:
+            return
+        
+        image = np.empty((240, 320), dtype=np.uint8)
+        all_image = []
+        
+        for i in range(0, 304 * 253):
+            chunk_index = int(i/304)
+            bit_index = i%303
+            try:
+                all_image[i] = self.image_chunks[chunk_index][bit_index]
+            except:
+                pass
+        
+        for i in range(240):
+            for e in range(320):
+                index = (240 * i) + e
+                image[i][e] = all_image[index]
+                
+        self.send_message("camera_data", image)
+                
 
     def on_battery_update(self, attr_name: str, aux: any, battery: Battery):
         if(self.vehicle is None):
@@ -118,9 +149,9 @@ class DroneCom:
             self.cancel_mission()
             
     def on_camera_information_update(self, attr_name:str, message: common.MAVLink_camera_information_message):
-        print("📨 New message: Camera information")
+        self.print("📨 New message: Camera information")
         if message.flags and common.CAMERA_CAP_FLAGS_HAS_VIDEO_STREAM == 0 :
-            print("⚠️ Video streaming not supported")
+            self.print("⚠️ Video streaming not supported")
         else:
             self.request_message(269)
 
@@ -186,10 +217,9 @@ class DroneCom:
         self.print("Message %s" % (b))  
         
     def connect(self):
-          
         try:
             self.print("🧩 Connecting to drone at %s" % DRONE_IP)
-            self.vehicle = connect(DRONE_IP, wait_ready=True,baud=57600)
+            self.vehicle = connect(DRONE_IP, wait_ready=True, baud=57600, timeout=300)
             self.vehicle.groundspeed = GROUND_SPEED
             self.vehicle.commands.download()
             self.vehicle.commands.wait_ready()
@@ -200,9 +230,11 @@ class DroneCom:
             self.vehicle.add_attribute_listener("commands", self.on_commands_update)
             self.vehicle.add_message_listener("CAMERA_INFORMATION", self.on_camera_information_update)
             self.vehicle.add_message_listener("VIDEO_STREAM_INFORMATION", self.on_video_stream_information_update)
-            self.vehicle.add_message_listener("*", self.message_debug)
+            self.vehicle.add_message_listener("ENCAPSULATED_DATA", self.receive_serial_camera)
+            self.print(self.vehicle.battery.level)
             self.request_message(259)
-        except:
+        except Exception as e:
+            self.print(e)
             self.vehicle = None
             
     def request_message(self, message: int):
