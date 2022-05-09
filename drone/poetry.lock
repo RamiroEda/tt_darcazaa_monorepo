@@ -29,6 +29,18 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
+name = "dronekit"
+version = "2.9.2"
+description = "Developer Tools for Drones."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+monotonic = ">=1.3"
+pymavlink = ">=2.2.20"
+
+[[package]]
 name = "future"
 version = "0.18.2"
 description = "Clean single-source support for Python 3 and 2"
@@ -68,6 +80,14 @@ htmlsoup = ["beautifulsoup4"]
 source = ["Cython (>=0.29.7)"]
 
 [[package]]
+name = "monotonic"
+version = "1.6"
+description = "An implementation of time.monotonic() for Python 2 & < 3.3"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "more-itertools"
 version = "8.12.0"
 description = "More routines for operating on iterables, beyond itertools"
@@ -85,6 +105,14 @@ python-versions = ">=3.6"
 
 [package.dependencies]
 pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
+
+[[package]]
+name = "playsound"
+version = "1.3.0"
+description = "Pure Python, cross platform, single function module with no dependencies for playing sounds."
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "pluggy"
@@ -196,7 +224,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "d0831d2dabee9639ee59d4f49cb9f94ba835dfdf432b20e04a4e1923d63ceeb4"
+content-hash = "4b36f230ca37c5b1ca8191da8872dfde5b4401def2ff4f892be9c86124257e04"
 
 [metadata.files]
 atomicwrites = [
@@ -210,6 +238,13 @@ attrs = [
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
+]
+dronekit = [
+    {file = "dronekit-2.9.2-py2-none-any.whl", hash = "sha256:2952badfea7d9d6f2092ad35e87443f3f72f6b0804f04580e0c39eef917f9eec"},
+    {file = "dronekit-2.9.2-py2.7.egg", hash = "sha256:9fce037c1c597b48ab068bb8a6aa2f2332df6ab9175dc0a2c0a6fd880585c81d"},
+    {file = "dronekit-2.9.2-py3-none-any.whl", hash = "sha256:97542ad03a7584287d878f2082f8533e41b2ba77881b06bfbd5594bfbd75434f"},
+    {file = "dronekit-2.9.2-py3.6.egg", hash = "sha256:adc5a006e0f59b030ca32e3353a80d9aaf181352bf108ee57947ae50d9a5a39f"},
+    {file = "dronekit-2.9.2.tar.gz", hash = "sha256:53d037241a86bf366a385c5bad7949536a4715e49111204d78d936c11fac4b51"},
 ]
 future = [
     {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
@@ -281,6 +316,10 @@ lxml = [
     {file = "lxml-4.8.0-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:8b99ec73073b37f9ebe8caf399001848fced9c08064effdbfc4da2b5a8d07b93"},
     {file = "lxml-4.8.0.tar.gz", hash = "sha256:f63f62fc60e6228a4ca9abae28228f35e1bd3ce675013d1dfb828688d50c6e23"},
 ]
+monotonic = [
+    {file = "monotonic-1.6-py2.py3-none-any.whl", hash = "sha256:68687e19a14f11f26d140dd5c86f3dba4bf5df58003000ed467e0e2a69bca96c"},
+    {file = "monotonic-1.6.tar.gz", hash = "sha256:3a55207bcfed53ddd5c5bae174524062935efed17792e9de2ad0205ce9ad63f7"},
+]
 more-itertools = [
     {file = "more-itertools-8.12.0.tar.gz", hash = "sha256:7dc6ad46f05f545f900dd59e8dfb4e84a4827b97b3cfecb175ea0c7d247f6064"},
     {file = "more_itertools-8.12.0-py3-none-any.whl", hash = "sha256:43e6dd9942dffd72661a2c4ef383ad7da1e6a3e968a927ad7a6083ab410a688b"},
@@ -288,6 +327,9 @@ more-itertools = [
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
+]
+playsound = [
+    {file = "playsound-1.3.0.tar.gz", hash = "sha256:cc6ed11d773034b0ef624e6bb4bf50f4b76b8414a59ce6d38afb89b423297ced"},
 ]
 pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},

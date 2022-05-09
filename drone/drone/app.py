@@ -1,6 +1,10 @@
-
-
+from time import sleep
+from drone.companion_vehicle import CompanionVehicle
 from ground_station import GroundStation
+from dronekit import SystemStatus
 
-print("Hola")
-ground_station = GroundStation()
+
+
+if __name__ == '__main__':
+    # ground_station = GroundStation()
+    vehicle = CompanionVehicle()

@@ -1,3 +1,4 @@
 [virtualenvs]
+create = false
 path = "./.venv/"
 in-project = true
