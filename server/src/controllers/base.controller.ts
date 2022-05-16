@@ -9,7 +9,12 @@ import fs = require('fs');
 export class BaseController {
     getWifiInfo(): { ssid: string; pass: string } | undefined {
         let file: string | undefined;
-        if (os.platform() === 'linux' && os.arch() === 'arm64') {
+        console.log(
+            'wpa_supplicant',
+            fs.existsSync('/etc/wpa_supplicant/wpa_supplicant.conf'),
+        );
+
+        if (fs.existsSync('/etc/wpa_supplicant/wpa_supplicant.conf')) {
             file = fs
                 .readFileSync('/etc/wpa_supplicant/wpa_supplicant.conf')
                 .toString('utf8');
