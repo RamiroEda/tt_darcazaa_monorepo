@@ -17,6 +17,7 @@ RUN apk add openssl
 RUN apk add sqlite
 
 COPY . .
+COPY ./wpa_supplicant.conf /etc/wpa_supplicant/
 
 RUN npm install
 RUN npx prisma generate
