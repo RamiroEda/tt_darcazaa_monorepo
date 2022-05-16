@@ -1,3 +1,6 @@
 [virtualenvs]
 create = false
 in-project = true
+
+[experimental]
+new-installer = false
