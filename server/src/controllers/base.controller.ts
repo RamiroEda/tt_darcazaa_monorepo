@@ -14,17 +14,11 @@ export class BaseController {
             file = fs
                 .readFileSync('/etc/wpa_supplicant/wpa_supplicant.conf')
                 .toString('utf8');
-
-            console.log('WIFI file found');
         }
 
         const matches = file?.match(/(?<=network=\{)(\n|.)*(?=\})/);
 
-        console.log(matches);
-
         const wifiConfig = matches?.[0].replace(/ +/gm, '');
-
-        console.log(wifiConfig);
 
         if (!wifiConfig) return undefined;
 
@@ -32,10 +26,13 @@ export class BaseController {
             wifiConfig
                 .split('\n')
                 .filter((it) => it.length > 0)
-                .map((it) => it.replace(/"/g, '').split('=')),
+                .map((it) =>
+                    it
+                        .replace(/"/g, '')
+                        .split('=')
+                        .map((it2) => it2.trim()),
+                ),
         );
-
-        console.log(config);
 
         return {
             ssid: config.ssid,
