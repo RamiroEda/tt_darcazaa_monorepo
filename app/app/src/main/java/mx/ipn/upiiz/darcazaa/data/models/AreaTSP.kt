@@ -4,15 +4,13 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
 import com.google.maps.android.SphericalUtil
 import org.jgrapht.alg.tour.GreedyHeuristicTSP
-import org.jgrapht.alg.tour.NearestNeighborHeuristicTSP
-import org.jgrapht.alg.tour.TwoApproxMetricTSP
 import org.jgrapht.graph.DefaultWeightedEdge
 import org.jgrapht.graph.SimpleWeightedGraph
 import kotlin.math.absoluteValue
-import kotlin.math.cos
 
-const val GRID_SEPARATION_METERS = 50.0
-const val LATITUDE_DEGREE_METERS = 111319.488
+private const val GRID_SEPARATION_METERS = 50.0
+private const val GRID_SEPARATION_METERS_SMALL = 5.0
+private const val LATITUDE_DEGREE_METERS = 111319.488
 
 fun areaTsp(area: List<LatLng>): List<LatLng> {
     val graph = SimpleWeightedGraph<LatLng, DefaultWeightedEdge>(DefaultWeightedEdge::class.java)
@@ -44,10 +42,11 @@ fun areaTsp(area: List<LatLng>): List<LatLng> {
 fun generateGrid(area: List<LatLng>): List<LatLng> {
     val (minLat, maxLat) = area.minMaxOf { it.latitude }
     val (minLng, maxLng) = area.minMaxOf { it.longitude }
+    val polyArea = SphericalUtil.computeArea(area)
 
     val grid = mutableListOf<LatLng>()
 
-    val modLat = (GRID_SEPARATION_METERS / LATITUDE_DEGREE_METERS).absoluteValue
+    val modLat = ((if(polyArea >= 5000) GRID_SEPARATION_METERS else GRID_SEPARATION_METERS_SMALL) / LATITUDE_DEGREE_METERS).absoluteValue
     var currentLat = minLat.minusMod(modLat)
 
     while (currentLat < maxLat){

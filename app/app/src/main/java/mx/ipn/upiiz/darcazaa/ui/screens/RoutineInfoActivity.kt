@@ -39,6 +39,7 @@ import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
 import mx.ipn.upiiz.darcazaa.data.models.viewModelFactory
 import mx.ipn.upiiz.darcazaa.data.repositories.HistoryRepository
 import mx.ipn.upiiz.darcazaa.ui.components.BatteryComponent
+import mx.ipn.upiiz.darcazaa.ui.components.HistoryItem
 import mx.ipn.upiiz.darcazaa.ui.components.MapView
 import mx.ipn.upiiz.darcazaa.ui.components.ValueDisplay
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
@@ -224,12 +225,13 @@ fun RideInfo(
                 Text(
                     modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp),
                     text = "Historial",
-                    style = MaterialTheme.typography.headlineLarge
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
             items(historyViewModel.history){
                 Card {
-                    Text(text = it.executedAt.toString())
+                    HistoryItem(it)
                 }
             }
         }

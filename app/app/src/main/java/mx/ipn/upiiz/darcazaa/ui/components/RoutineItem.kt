@@ -85,11 +85,17 @@ fun RoutineItem(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = routineWithWaypoints.routine.repeat.toDays().joinToString(", ") {
-                        it.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es_MX")).substring(0,2)
+                    text = routineWithWaypoints.routine.repeat.toDays().let {
+                        if(it.isNotEmpty()){
+                            it.joinToString(", ") { d ->
+                                d.getDisplayName(TextStyle.FULL, Locale.forLanguageTag("es_MX")).substring(0,2)
+                            }
+                        }else{
+                            "Una sola vez"
+                        }
                     },
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "${routineWithWaypoints.routine.start.toHour()} Hrs.",

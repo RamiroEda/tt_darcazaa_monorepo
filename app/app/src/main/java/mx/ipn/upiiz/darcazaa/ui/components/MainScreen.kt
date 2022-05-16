@@ -2,8 +2,8 @@ package mx.ipn.upiiz.darcazaa.ui.components
 
 import android.content.Intent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.*
@@ -46,38 +46,26 @@ fun MainScreen(
             )
             Column(
                 modifier = Modifier
+                    .verticalScroll(rememberScrollState())
                     .fillMaxSize()
+                    .padding(bottom = 92.dp)
                     .padding(horizontal = 32.dp)
             ) {
                 Text(
-                    modifier = Modifier.padding(top = 32.dp),
+                    modifier = Modifier.padding(top = 32.dp, bottom = 16.dp),
                     text = "Mis rutinas",
                     style = MaterialTheme.typography.headlineLarge
                 )
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentPadding = PaddingValues(
-                        top = 24.dp,
-                        bottom = 80.dp
-                    )
-                ){
-                    item {
-                        DroneInfoCard()
-                    }
-                    items(droneViewModel.routines){
-                        RoutineItem(routineWithWaypoints = it)
-                    }
-                    if (droneViewModel.routines.isEmpty()){
-                        item {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(text = "Sin rutinas")
-                            }
-                        }
+                DroneInfoCard()
+                droneViewModel.routines.forEach {
+                    RoutineItem(routineWithWaypoints = it)
+                }
+                if (droneViewModel.routines.isEmpty()){
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(64.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "Sin rutinas")
                     }
                 }
             }

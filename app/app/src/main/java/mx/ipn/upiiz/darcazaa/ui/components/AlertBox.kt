@@ -1,14 +1,15 @@
 package mx.ipn.upiiz.darcazaa.ui.components
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,16 +69,22 @@ fun AlertBox(
                 } else if(isNotSynced){
                     "Conectar para sincronizar"
                 }else  "",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White
             )
             if (!isConnected){
-                TextButton(
+                OutlinedButton(
+                    modifier = Modifier.padding(top = 8.dp),
                     onClick = {
                         preferences.remove(PreferenceKeys.Url)
                         socketProvider.socket.disconnect()
                     },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = Color.White
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White,
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = Color.White,
                     )
                 ) {
                     Text(text = "DESCONECTAR")

@@ -51,7 +51,8 @@ fun BatteryComponent(
         Text(
             modifier = Modifier.padding(start = 8.dp),
             text = "${battery.level}%",
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
