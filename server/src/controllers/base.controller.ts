@@ -9,20 +9,22 @@ import fs = require('fs');
 export class BaseController {
     getWifiInfo(): { ssid: string; pass: string } | undefined {
         let file: string | undefined;
-        console.log(
-            'wpa_supplicant',
-            fs.existsSync('/etc/wpa_supplicant/wpa_supplicant.conf'),
-        );
 
         if (fs.existsSync('/etc/wpa_supplicant/wpa_supplicant.conf')) {
             file = fs
                 .readFileSync('/etc/wpa_supplicant/wpa_supplicant.conf')
                 .toString('utf8');
+
+            console.log('WIFI file found');
         }
 
         const matches = file?.match(/(?<=network=\{)(\n|.)*(?=\})/);
 
+        console.log(matches);
+
         const wifiConfig = matches?.[0].replace(/ +/gm, '');
+
+        console.log(wifiConfig);
 
         if (!wifiConfig) return undefined;
 
@@ -32,6 +34,8 @@ export class BaseController {
                 .filter((it) => it.length > 0)
                 .map((it) => it.replace(/"/g, '').split('=')),
         );
+
+        console.log(config);
 
         return {
             ssid: config.ssid,

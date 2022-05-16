@@ -32,6 +32,7 @@ const rootDir = __dirname;
     },
     logger: {
         disableRoutesSummary: true,
+        logRequest: false,
     },
 })
 export class Server implements BeforeRoutesInit, AfterRoutesInit {
