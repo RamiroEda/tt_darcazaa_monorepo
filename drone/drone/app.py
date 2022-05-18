@@ -1,5 +1,5 @@
 from time import sleep
-from drone.companion_vehicle import CompanionVehicle
+from companion_vehicle import CompanionVehicle
 from ground_station import GroundStation
 from dronekit import SystemStatus
 
