@@ -1,8 +1,8 @@
 install:
-	poetry install
+	pip3 install -r requirements.txt
 
 run:
-	poetry run python drone/app.py
+	python3 ./drone/app.py
 
 exp:
 	poetry export -f requirements.txt --output requirements.txt
