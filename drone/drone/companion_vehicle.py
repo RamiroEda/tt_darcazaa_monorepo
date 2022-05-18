@@ -16,7 +16,7 @@ class CompanionVehicle:
             if self.vehicle is None:
                 try:
                     print("Connecting to drone at localhost...")
-                    self.vehicle = connect("tcp:127.0.0.1:5760", wait_ready=True)
+                    self.vehicle = connect("127.0.0.1:14550", wait_ready=True)
                     print("Drone connected")
                     self.vehicle.add_attribute_listener("system_status", self.on_vehicle_status_change)
                 except:
