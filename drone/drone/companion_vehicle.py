@@ -24,8 +24,9 @@ class CompanionVehicle:
                     print("Connecting to drone at localhost...")
                     self.vehicle = connect("127.0.0.1:14550", wait_ready=True)
                     print("Drone connected")
-                    playsound(os.path.join(root, "start.mp3"))
+                    playsound(os.path.join(root, "start.mp3"), block=False)
                     self.vehicle.add_attribute_listener("system_status", self.on_vehicle_status_change)
+                    print("Waiting changes...")
                 except Exception as e:
                     print(e)
                     if self.vehicle is not None:
