@@ -1,2 +1,2 @@
 #!/bin/bash
-make run
+docker run --device /dev/snd app

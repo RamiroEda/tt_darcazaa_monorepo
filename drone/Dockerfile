@@ -1,11 +1,12 @@
-FROM python:3.9.12-buster
+FROM python:3.7-buster
 
 WORKDIR /usr/app
 
-RUN apt-get -y install make
-RUN apt-get -y install c++ cpp
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-ENV PATH="${PATH}:/root/.poetry/bin"
+RUN apt-get update
+RUN apt-get -y install make gstreamer-1.0
+RUN apt-get -y install libxml2-dev libxslt-dev python-dev
+RUN apt-get -y install python3-lxml python-lxml
+RUN apt-get -y install python3-gi python3-gi-cairo gir1.2-gtk-3.0
 
 COPY . .
 
