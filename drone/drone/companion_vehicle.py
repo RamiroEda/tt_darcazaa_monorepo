@@ -8,6 +8,8 @@ import os
 
 root = Path(__file__).parent.parent
 
+print(root)
+
 class CompanionVehicle:
     vehicle: Vehicle = None
     sound_instance: Process = None
