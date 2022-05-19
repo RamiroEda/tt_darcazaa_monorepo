@@ -1,2 +1,2 @@
 #!/bin/bash
-docker run --device /dev/snd app
+python3 /home/pi/tt_darcazaa_monorepo/drone/drone/app.py
