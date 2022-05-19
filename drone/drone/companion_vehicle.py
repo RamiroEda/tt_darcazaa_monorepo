@@ -20,7 +20,6 @@ class CompanionVehicle:
         while True:
             if self.vehicle is None:
                 try:
-                    self._omx_play(os.path.join(root, "start.mp3"))
                     print("Connecting to drone at localhost...")
                     self.vehicle = connect("127.0.0.1:14550", wait_ready=True)
                     print("Drone connected")
