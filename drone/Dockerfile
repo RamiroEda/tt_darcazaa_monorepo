@@ -1,4 +1,4 @@
-FROM logiqx/python-lxml:3.8-slim-buster
+FROM dvicente/python3-lxml:dc8e885932e403519b14f6db1adb93c3deca89ee
 
 WORKDIR /usr/app
 
