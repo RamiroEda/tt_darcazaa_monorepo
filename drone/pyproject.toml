@@ -5,11 +5,12 @@ description = ""
 authors = ["Ramiro Estrada Garcia <ramiroestradag@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
-pymavlink = "^2.4.29"
+python = "^3.8"
+pymavlink = "2.4.19"
 pyserial = "^3.5"
 dronekit = "^2.9.2"
 lxml = "4.5.0"
+opencv-contrib-python = "^4.5.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
