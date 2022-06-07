@@ -23,7 +23,7 @@ class CompanionVehicle:
             if self.vehicle is None:
                 try:
                     print("🧩 Connecting to drone at localhost...")
-                    self.vehicle = connect("tcp:192.168.1.230:5762", wait_ready=True) # 127.0.0.1:14550
+                    self.vehicle = connect("127.0.0.1:14550", wait_ready=True) # 127.0.0.1:14550 o tcp:192.168.1.230:5762
                     self.vehicle.commands.download()
                     self.vehicle.commands.wait_ready()
                     print("✅ Drone connected")
