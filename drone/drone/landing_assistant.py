@@ -24,23 +24,25 @@ class LandingAssistant:
         print("📷 Scanning status: %s" % enabled)
         self.can_scan = enabled
         
-    def find_marker(self, frame, id: int):
+    def find_marker(self, frame):
         grayscale = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         (box, ids, _) = aruco.detectMarkers(grayscale, self.dictionary, parameters = self.params)
         if self.debug:
             aruco.drawDetectedMarkers(frame, box, ids)
             
-        indexes = np.where(ids == id)[0]
-        
+        id = np.amin(ids)
         value = None
+
+        if id is not None:
+            indexes = np.where(ids == id)[0]
+
+            if len(indexes) > 0:
+                index = indexes[0]
+                value = box[index][0]
         
-        if len(indexes) > 0:
-            index = indexes[0]
-            value = box[index][0]
         
-        
-        return value
+        return id, value
         
     def capture_video(self):
         while True:
@@ -54,14 +56,14 @@ class LandingAssistant:
         (_, frame) = self.camera.read()
             
         if frame is not None:
-            marker = self.find_marker(frame, 69)
+            id, marker = self.find_marker(frame)
             
             offset = None
             
             if marker is not None:
                 offset = self.marker_offset(frame, marker)
                 
-                self.center_vehicle(offset)
+                self.center_vehicle(offset, id)
                 
 
             if self.debug:
@@ -91,10 +93,7 @@ class LandingAssistant:
     def distance_between_vertices(self, v1, v2) -> float:
         return sqrt(pow(v1[0] - v2[0], 2) + pow(v1[1] - v2[1], 2))
         
-    def center_vehicle(self, offset):
-        if self.vehicle.get_mode().name != "LAND":
-            self.vehicle.set_mode(VehicleMode("LAND"))
-            
+    def center_vehicle(self, offset, id):
         vx = 0
         vy = 0
         
@@ -102,10 +101,13 @@ class LandingAssistant:
             vx = offset[0]
             vy = offset[1]
             
-        # print("🛬 Landing... (%f, %f)" % (vx, vy))
+        print("🛬 Landing in %i... (%f, %f)" % (id, vx, vy))
         
-        self.vehicle.send_land_message(vx, vy, time()*1e6)
+        if self.vehicle is not None:
+            if self.vehicle.get_mode().name != "LAND":
+                self.vehicle.set_mode(VehicleMode("LAND"))
+            self.vehicle.send_land_message(vx, vy, time()*1e6)
             
 
-if __name__ == "__main__":
-    LandingAssistant(None, debug=True)
+# if __name__ == "__main__":
+#     LandingAssistant(None, debug=True).can_scan = True
