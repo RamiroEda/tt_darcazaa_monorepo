@@ -18,6 +18,7 @@ class LandingAssistant:
     def __init__(self, vehicle: any, debug = False) -> None:
         self.debug = debug
         self.vehicle = vehicle
+        print("📷 Camera index: %i" % CAMERA_INDEX)
         Thread(target=self.capture_video).start()
         
     def enable(self, enabled: bool):
@@ -109,5 +110,5 @@ class LandingAssistant:
             self.vehicle.send_land_message(vx, vy, time()*1e6)
             
 
-# if __name__ == "__main__":
-#     LandingAssistant(None, debug=True).can_scan = True
+if __name__ == "__main__":
+    LandingAssistant(None).enable(True)
