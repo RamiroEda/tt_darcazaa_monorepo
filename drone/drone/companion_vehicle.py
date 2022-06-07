@@ -94,7 +94,7 @@ class CompanionVehicle:
                 self.sound_instance.start()
         elif status.state == "STANDBY":
             self.landing_assistant.enable(False)
-        else:
+        elif self.sound_instance is not None:
             self.sound_instance.terminate()
             
     def _omx_play(slef, path: str):
