@@ -8,7 +8,7 @@ from dronekit import VehicleMode
 from constants import CAMERA_INDEX
 
 class LandingAssistant:
-    camera: cv2.VideoCapture = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_DSHOW)
+    camera: cv2.VideoCapture = cv2.VideoCapture(CAMERA_INDEX)
     dictionary = aruco.Dictionary_get(aruco.DICT_4X4_250)
     params = aruco.DetectorParameters_create()
     debug: bool
