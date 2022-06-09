@@ -40,6 +40,7 @@ class DroneCom:
             GPIO.setup(SERVO_PIN, GPIO.OUT)
             self.servo = GPIO.PWM(SERVO_PIN, 50)
             self.servo.start()
+        self.servo_pre_check()
         Thread(target=self._worker).start()
         
     def _worker(self):
@@ -243,7 +244,6 @@ class DroneCom:
             self.vehicle.groundspeed = GROUND_SPEED
             self.vehicle.commands.download()
             self.vehicle.commands.wait_ready()
-            self.servo_pre_check()
             self.print("✅ Drone connected. IP: %s" % DRONE_IP)
             self.vehicle.location.add_attribute_listener("global_relative_frame", self.on_location_update)
             self.vehicle.add_attribute_listener("system_status", self.on_system_status_update)
