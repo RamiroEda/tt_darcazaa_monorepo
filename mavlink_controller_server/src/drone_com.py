@@ -10,20 +10,36 @@ from models.lat_lng import LatLng
 from models.mission_status import MissionStatus
 from pymavlink.dialects.v20 import common
 import numpy as np
-from constants import DRONE_ALTITUDE, DRONE_IP, GROUND_SPEED, MAX_WINDSPEED, MINIMUM_BATTERY_TO_START, WAYPOINT_ACCEPTANCE_RADIUS
+from constants import DRONE_ALTITUDE, SERVO_PIN, DRONE_IP, GROUND_SPEED, MAX_WINDSPEED, MINIMUM_BATTERY_TO_START, WAYPOINT_ACCEPTANCE_RADIUS
+
+gpio_imported = False
+try:
+    import RPi.GPIO as GPIO
+    gpio_imported = True
+except:
+    gpio_imported = False
 
 class DroneCom:
     send_message_listeners: List[Callable[[str, any], None]] = []
     is_cancel = False
     vehicle: Vehicle = None
     windspeed: float = 0.0
+    servo = None
     
     vehicle_start_mission_battery: Tuple[datetime, float] = None
     
     image_chunks = np.empty((304, 253), dtype=np.uint8)
     
+    discharge_speed = 0
+    until_discharge = 0
+    
     def __init__(self, debug: bool):
         self.debug = debug
+        if gpio_imported:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(SERVO_PIN, GPIO.OUT)
+            self.servo = GPIO.PWM(SERVO_PIN, 50)
+            self.servo.start()
         Thread(target=self._worker).start()
         
     def _worker(self):
@@ -96,19 +112,19 @@ class DroneCom:
         })
         
         if self.vehicle_start_mission_battery is not None:
-            (start, level) = self.vehicle_start_mission_battery
-            leveldiff = abs(battery.level - level)
+            (start, voltage) = self.vehicle_start_mission_battery
+            leveldiff = abs(battery.voltage - voltage)
             timediff = abs(datetime.now() - start)
             
             if timediff.seconds == 0:
                 return
             
-            discharge_speed = leveldiff / timediff.seconds
+            self.discharge_speed = leveldiff / timediff.seconds
             
-            if discharge_speed == 0:
+            if self.discharge_speed == 0:
                 return
             
-            until_discharge = (battery.level - 10) / discharge_speed
+            self.until_discharge = (battery.voltage - 14.5) / self.discharge_speed
             
             if self.vehicle.airspeed == 0:
                 return
@@ -116,12 +132,15 @@ class DroneCom:
             distance_to_home = self.distance_between_locations(self.vehicle.home_location, self.vehicle.location.global_frame)
             time_to_home = distance_to_home / GROUND_SPEED
                         
-            if until_discharge <= time_to_home and not self.is_cancel:
-                self.print("🔋 Not enough battery. Time to home: %f. Time to discharge: %f. Distance to home: %f" % (time_to_home, until_discharge, distance_to_home))
+            if self.until_discharge <= time_to_home and not self.is_cancel:
+                self.print("🔋 Not enough battery. Time to home: %f. Time to discharge: %f. Distance to home: %f" % (time_to_home, self.until_discharge, distance_to_home))
                 self.cancel_mission()
     
 
     def on_commands_update(self, attr_name: str, aux: any, commands: CommandSequence):
+        self.print("🔋 Battery voltage:         %f V" % self.vehicle.battery.voltage)
+        self.print("🔋 Battery discharge:       %f V/s" % self.discharge_speed)
+        self.print("🔋 Battery until discharge: %f s" % self.until_discharge)
         if(self.vehicle is None):
             return
         if(commands.next == commands.count):
@@ -145,6 +164,7 @@ class DroneCom:
             self.is_cancel = False
             self.vehicle_start_mission_battery = None
             self.clear_commands()
+            self.wait_for_battery_charged()
         if status.state == "CRITICAL" or status.state == "EMERGENCY":
             self.cancel_mission()
             
@@ -223,6 +243,7 @@ class DroneCom:
             self.vehicle.groundspeed = GROUND_SPEED
             self.vehicle.commands.download()
             self.vehicle.commands.wait_ready()
+            self.servo_pre_check()
             self.print("✅ Drone connected. IP: %s" % DRONE_IP)
             self.vehicle.location.add_attribute_listener("global_relative_frame", self.on_location_update)
             self.vehicle.add_attribute_listener("system_status", self.on_system_status_update)
@@ -231,11 +252,38 @@ class DroneCom:
             self.vehicle.add_message_listener("CAMERA_INFORMATION", self.on_camera_information_update)
             self.vehicle.add_message_listener("VIDEO_STREAM_INFORMATION", self.on_video_stream_information_update)
             self.vehicle.add_message_listener("ENCAPSULATED_DATA", self.receive_serial_camera)
-            self.print(self.vehicle.battery.level)
+            self.print(self.vehicle.battery.voltage)
             self.request_message(259)
         except Exception as e:
             self.print(e)
             self.vehicle = None
+            
+    def servo_pre_check(self):
+        self.connect_battery()
+        sleep(1)
+        self.disconnect_battery()
+        sleep(1)
+        self.connect_battery()
+        
+    def wait_for_battery_charged(self):
+        Thread(target=self._worker_battery_charged).start()
+        
+    def _worker_battery_charged(self):
+        self.connect_battery()
+        sleep(1800)
+        self.disconnect_battery()
+        
+    def connect_battery(self):
+        self.print("⬆️ Servo Open")
+        if self.servo is not None:
+            self.servo.ChangeDutyCycle(7.5)
+        
+    def disconnect_battery(self):
+        self.print("⬇️ Servo Closed")
+        if self.servo is not None:
+            self.servo.ChangeDutyCycle(2)
+            sleep(0.5)
+            self.servo.ChangeDutyCycle(0)
             
     def request_message(self, message: int):
         self.vehicle.send_mavlink(
@@ -263,9 +311,10 @@ class DroneCom:
             self.send_message("status", MissionStatus.WAITING_FOR_WEATHER.value)
             return
 
-        if self.vehicle.battery.level >= MINIMUM_BATTERY_TO_START:
+        if self.vehicle.battery.voltage >= MINIMUM_BATTERY_TO_START:
             self.send_message("status", MissionStatus.STARTING.value)
         else:
+            self.wait_for_battery_charged()
             self.send_message("status", MissionStatus.WAITING_FOR_BATTERY.value)
             return
         
@@ -322,7 +371,7 @@ class DroneCom:
                 break
             sleep(1)
             
-        self.vehicle_start_mission_battery = (datetime.now(), self.vehicle.battery.level)
+        self.vehicle_start_mission_battery = (datetime.now(), self.vehicle.battery.voltage)
 
     def print(
         self,

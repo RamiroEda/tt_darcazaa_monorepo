@@ -9,4 +9,5 @@ MAX_WINDSPEED = float(os.environ['MAX_WINDSPEED'])
 FLASK_ENV = os.environ['FLASK_ENV']
 WEBSOCKET_SERVER = os.environ['WEBSOCKET_SERVER']
 DRONE_IP = os.environ['DRONE_IP']
+SERVO_PIN = int(os.environ['SERVO_PIN'])
 GROUND_SPEED = 10
