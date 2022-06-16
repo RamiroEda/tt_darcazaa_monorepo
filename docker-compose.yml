@@ -18,9 +18,9 @@ services:
       - WEBSOCKET_SERVER=http://localhost:4000
       - DRONE_IP=/dev/bus/usb/001/002
       - WAYPOINT_ACCEPTANCE_RADIUS=5
-      - DRONE_ALTITUDE=30
+      - DRONE_ALTITUDE=10
       - MINIMUM_BATTERY=15
-      - MINIMUM_BATTERY_TO_START=75
+      - MINIMUM_BATTERY_TO_START=16
       - MAX_WINDSPEED=8.333333
       - SERVO_PIN=12
     restart: always
