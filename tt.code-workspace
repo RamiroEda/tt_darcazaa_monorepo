@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"name": "server",
+			"path": "server"
+		},
+		{
+			"name": "mavlink_controller_server",
+			"path": "mavlink_controller_server"
+		},
+		{
+			"name": "drone",
+			"path": "drone"
+		}
+	],
+	"settings": {
+		"nuxt.isNuxtApp": false
+	}
+}
