@@ -11,6 +11,7 @@ import mx.ipn.upiiz.darcazaa.data.models.SyncingStatus
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.data.repositories.ConnectionRepository
 import javax.inject.Inject
+import kotlin.math.log
 
 @HiltViewModel
 class ConnectionViewModel @Inject constructor(
@@ -20,7 +21,7 @@ class ConnectionViewModel @Inject constructor(
 ): ViewModel() {
     val isConnected = mutableStateOf(false)
     val loading = mutableStateOf(true)
-    val url = mutableStateOf<String?>(null)
+    val url = mutableStateOf<String?>(preferences.get(PreferenceKeys.Url))
     val syncingStatus = mutableStateOf(SyncingStatus.UNKNOWN)
     private val routineRepository = localDatabase.routineRepository()
 
@@ -42,7 +43,7 @@ class ConnectionViewModel @Inject constructor(
     private fun waitForConnection() = viewModelScope.launch {
         while (isActive){
             while (isActive){
-                println("Waiting for connection in ${preferences.get(PreferenceKeys.Url, "192.168.1.1")} ...")
+                println("Waiting for connection in ${url.value ?: "UNDEFINED"} ...")
                 if(connectionRepository.tryConnect()) break
                 else delay(1000)
                 loading.value = false

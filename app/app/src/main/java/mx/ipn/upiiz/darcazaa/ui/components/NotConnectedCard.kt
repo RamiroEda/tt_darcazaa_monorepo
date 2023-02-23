@@ -38,8 +38,6 @@ fun NotConnectedCard(
             runCatching {
                 JSONObject(it).also { json ->
                     assert(json.has("ip")){"No IP"}
-                    assert(json.has("ssid")){"No SSID"}
-                    assert(json.has("pass")){"No Password"}
                 }
             }.onSuccess { json ->
                 val ip = json.getString("ip")
@@ -47,10 +45,12 @@ fun NotConnectedCard(
                     preferences.set(PreferenceKeys.Url, ip)
                     socketProvider.socket = IO.socket("ws://$ip/routines", ioOptions)
 
-                    context.connectToWifiNetwork(
-                        json.getString("ssid"),
-                        json.getString("pass")
-                    )
+                    if(json.has("ssid")){
+                        context.connectToWifiNetwork(
+                            json.getString("ssid"),
+                            if(json.has("pass")) json.getString("pass") else null
+                        )
+                    }
                 }
             }
         }

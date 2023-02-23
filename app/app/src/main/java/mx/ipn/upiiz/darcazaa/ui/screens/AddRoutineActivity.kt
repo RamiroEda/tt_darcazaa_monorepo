@@ -306,14 +306,16 @@ fun SelectArea(
                                 val fusedLocationClient =
                                     LocationServices.getFusedLocationProviderClient(context)
                                 fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
-                                    it.moveCamera(
-                                        CameraUpdateFactory.newLatLngZoom(
-                                            LatLng(
-                                                loc.latitude,
-                                                loc.longitude
-                                            ), 17f
+                                    if(loc != null){
+                                        it.moveCamera(
+                                            CameraUpdateFactory.newLatLngZoom(
+                                                LatLng(
+                                                    loc.latitude,
+                                                    loc.longitude
+                                                ), 17f
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                         }

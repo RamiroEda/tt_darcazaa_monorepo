@@ -26,42 +26,42 @@ interface ConnectionRepository {
 class ConnectionSocketIORepository(
     private val socketProvider: SocketProvider,
     private val preferences: UserPreferences
-): ConnectionRepository{
+) : ConnectionRepository {
     override suspend fun tryConnect(): Boolean = try {
-        if(socketProvider.socket.connected()){
+        if (socketProvider.socket.connected()) {
             true
-        }else{
+        } else {
             socketProvider.socket.connect().connected()
         }
-    }catch (e: Exception){
+    } catch (e: Exception) {
         e.printStackTrace()
         false
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun connectionStatus(): Flow<Boolean> = callbackFlow {
-        socketProvider.socket.on(Socket.EVENT_CONNECT){
+        socketProvider.socket.on(Socket.EVENT_CONNECT) {
             trySend(true)
         }
-        socketProvider.socket.on(Socket.EVENT_CONNECT_ERROR){
+        socketProvider.socket.on(Socket.EVENT_CONNECT_ERROR) {
             trySend(false)
             cancel(Socket.EVENT_CONNECT_ERROR)
         }
-        socketProvider.socket.on(Socket.EVENT_DISCONNECT){
+        socketProvider.socket.on(Socket.EVENT_DISCONNECT) {
             trySend(false)
             cancel(Socket.EVENT_DISCONNECT)
         }
-        awaitClose {  }
+        awaitClose { }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun routinesChanges(): Flow<List<Routine>> = callbackFlow {
-        socketProvider.socket.on("routines"){
+        socketProvider.socket.on("routines") {
             val hashes = it.firstOrNull()
-            if(hashes is JSONArray){
+            if (hashes is JSONArray) {
                 val hashesList = mutableListOf<Routine>()
 
-                for (i in 0 until hashes.length()){
+                for (i in 0 until hashes.length()) {
                     val routine = hashes.getJSONObject(i)
                     hashesList.add(
                         Routine(
@@ -71,9 +71,9 @@ class ConnectionSocketIORepository(
                             title = routine.getString("title"),
                             isSynced = true,
                             hash = routine.getString("hash"),
-                            executedAt = if(!routine.isNull("executedAt")){
+                            executedAt = if (!routine.isNull("executedAt")) {
                                 routine.getInt("executedAt")
-                            }else null
+                            } else null
                         )
                     )
                 }
@@ -81,47 +81,55 @@ class ConnectionSocketIORepository(
                 trySend(hashesList)
             }
         }
-        awaitClose {  }
+        awaitClose { }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun syncingStatus(): Flow<SyncingStatus> = callbackFlow {
-        socketProvider.socket.on("sync"){
+        socketProvider.socket.on("sync") {
             val status = it.firstOrNull()
-            if(status is String){
+            if (status is String) {
                 trySend(SyncingStatus.safeValueOf(status))
             }
         }
-        awaitClose {  }
+        awaitClose { }
     }
 
     override suspend fun syncRoutines(routines: List<RoutineWithWaypoints>) {
-        socketProvider.socket.emit("sync_routines", JSONObject(mapOf(
-            "routines" to JSONArray(routines.map { data ->
-                data.routine.let {
-                    JSONObject(mapOf(
-                        "id" to it.id,
-                        "start" to it.start,
-                        "repeat" to it.repeat,
-                        "title" to it.title,
-                        "hash" to it.hash
-                    ))
-                }
-            }),
-            "waypoints" to JSONArray(routines.map {
-                it.waypoints
-            }.mergeAll().map { data ->
-                data.let {
-                    JSONObject(mapOf(
-                        "id" to it.id,
-                        "index" to it.index,
-                        "latitude" to it.latitude,
-                        "longitude" to it.longitude,
-                        "routine_hash" to it.routine_hash
-                    ))
-                }
-            })
-        )))
+        socketProvider.socket.emit(
+            "sync_routines", JSONObject(
+                mapOf(
+                    "routines" to JSONArray(routines.map { data ->
+                        data.routine.let {
+                            JSONObject(
+                                mapOf(
+                                    "id" to it.id,
+                                    "start" to it.start,
+                                    "repeat" to it.repeat,
+                                    "title" to it.title,
+                                    "hash" to it.hash
+                                )
+                            )
+                        }
+                    }),
+                    "waypoints" to JSONArray(routines.map {
+                        it.waypoints
+                    }.mergeAll().map { data ->
+                        data.let {
+                            JSONObject(
+                                mapOf(
+                                    "id" to it.id,
+                                    "index" to it.index,
+                                    "latitude" to it.latitude,
+                                    "longitude" to it.longitude,
+                                    "routine_hash" to it.routine_hash
+                                )
+                            )
+                        }
+                    })
+                )
+            )
+        )
     }
 
     override fun emitData() {
@@ -129,8 +137,8 @@ class ConnectionSocketIORepository(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun urlChanges(): Flow<String?>
-        = preferences.preferenceChanges
-            .filter { it.first === PreferenceKeys.Url }
-            .map { it.second as? String? }
+    override fun urlChanges(): Flow<String?> = preferences.preferenceChanges
+        .filter { it.first === PreferenceKeys.Url }
+        .map { it.second as? String? }
+        .filter { it?.isEmpty() != true }
 }

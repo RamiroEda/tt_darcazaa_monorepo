@@ -15,12 +15,12 @@ fun String.isValidIP() = matches(Regex("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-
 
 fun Context.connectToWifiNetwork(
     ssid: String,
-    pass: String
+    pass: String?
 ){
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         val wifiNetworkSpecifier = WifiNetworkSpecifier.Builder()
             .setSsid(ssid)
-            .setWpa2Passphrase(pass)
+            .setWpa2Passphrase(pass ?: "")
             .build()
 
         val networkRequest = NetworkRequest.Builder()
