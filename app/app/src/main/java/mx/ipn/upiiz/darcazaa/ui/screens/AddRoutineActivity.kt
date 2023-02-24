@@ -30,15 +30,13 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.ktx.addCircle
-import com.google.maps.android.ktx.addPolygon
+import com.google.maps.android.compose.*
 import dagger.hilt.android.AndroidEntryPoint
 import mx.ipn.upiiz.darcazaa.R
 import mx.ipn.upiiz.darcazaa.ui.components.Chip
-import mx.ipn.upiiz.darcazaa.ui.components.MapView
 import mx.ipn.upiiz.darcazaa.ui.components.TimePickerDialog
-import mx.ipn.upiiz.darcazaa.ui.components.rememberMapViewWithLifecycle
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
+import mx.ipn.upiiz.darcazaa.ui.theme.LightThemeColors
 import mx.ipn.upiiz.darcazaa.utils.toHour
 import mx.ipn.upiiz.darcazaa.view_models.AddRoutineViewModel
 import java.time.DayOfWeek
@@ -86,6 +84,7 @@ fun RoutineBasicInfo(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(it)
                 .padding(horizontal = 32.dp)
         ) {
             Text(
@@ -236,8 +235,7 @@ fun SelectArea(
 ) {
     val context = LocalContext.current as FragmentActivity
     val colorScheme = MaterialTheme.colorScheme
-    val mapView = rememberMapViewWithLifecycle()
-    addRoutineViewModel.selectedPolygon.size
+    val cameraPositionState = rememberCameraPositionState()
 
     Scaffold(
         floatingActionButton = {
@@ -262,9 +260,7 @@ fun SelectArea(
                 ExtendedFloatingActionButton(
                     modifier = Modifier.padding(top = 8.dp),
                     onClick = {
-                        mapView.getMapAsync {
-                            addRoutineViewModel.addPoint(it.cameraPosition.target)
-                        }
+                        addRoutineViewModel.addPoint(cameraPositionState.position.target)
                     },
                     icon = {
                         Icon(imageVector = Icons.Rounded.Add, contentDescription = null)
@@ -293,21 +289,24 @@ fun SelectArea(
             }
         }
     ) {
-        Box {
-            MapView(
-                mapView = mapView,
-                isCenterPointEnabled = true,
-                mapFinish = {
-                    it.mapType = GoogleMap.MAP_TYPE_SATELLITE
+        Box(
+            modifier = Modifier.padding(it)
+        ) {
+            GoogleMap(
+                cameraPositionState = cameraPositionState,
+                properties = MapProperties(
+                    mapType = MapType.SATELLITE,
+                    isMyLocationEnabled = true
+                ),
+                onMapLoaded = {
                     context.permissionsBuilder(Manifest.permission.ACCESS_FINE_LOCATION).build()
                         .send { res ->
                             if (res.allGranted()) {
-                                it.isMyLocationEnabled = true
                                 val fusedLocationClient =
                                     LocationServices.getFusedLocationProviderClient(context)
                                 fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
                                     if(loc != null){
-                                        it.moveCamera(
+                                        cameraPositionState.move(
                                             CameraUpdateFactory.newLatLngZoom(
                                                 LatLng(
                                                     loc.latitude,
@@ -321,31 +320,23 @@ fun SelectArea(
                         }
                 }
             ) {
-                addRoutineViewModel.selectedPolygon.let { polygon ->
-                    if (polygon.isNotEmpty()) {
-                        it.addPolygon {
-                            addAll(polygon)
-                            fillColor(
-                                (colorScheme.primary.toArgb()
-                                    .toLong() or 0xFF000000 and 0x55FFFFFF).toInt()
-                            )
-                            strokeColor(
-                                (colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt()
-                            )
-                        }
-                        polygon.forEach { pos ->
-                            it.addCircle {
-                                center(pos)
-                                radius(3.0)
-                                strokeColor(
-                                    (colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt()
-                                )
-                                fillColor(
-                                    (colorScheme.secondary.toArgb().toLong() or 0xFF000000).toInt()
-                                )
-                            }
-                        }
-                    }
+                Marker(
+                    state = MarkerState(cameraPositionState.position.target)
+                )
+                if (addRoutineViewModel.selectedPolygon.isNotEmpty()) {
+                    Polygon(
+                        points = addRoutineViewModel.selectedPolygon.toList(),
+                        fillColor = LightThemeColors.primaryContainer.copy(alpha = 0.5f),
+                        strokeColor = LightThemeColors.primaryContainer
+                    )
+                }
+                addRoutineViewModel.selectedPolygon.map { latLng ->
+                    Circle(
+                        center = latLng,
+                        radius = 4.0,
+                        strokeColor = LightThemeColors.secondaryContainer,
+                        fillColor = LightThemeColors.secondaryContainer
+                    )
                 }
             }
             IconButton(

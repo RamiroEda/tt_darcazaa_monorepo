@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import com.google.accompanist.appcompattheme.AppCompatTheme
 import mx.ipn.upiiz.darcazaa.ui.theme.*
 
-private val LightThemeColors = lightColorScheme(
+ val LightThemeColors = lightColorScheme(
     primary = md_theme_light_primary,
     onPrimary = md_theme_light_onPrimary,
     primaryContainer = md_theme_light_primaryContainer,
@@ -37,7 +37,7 @@ private val LightThemeColors = lightColorScheme(
     inversePrimary = md_theme_light_inversePrimary,
 //    shadow = md_theme_light_shadow,
 )
-private val DarkThemeColors = darkColorScheme(
+ val DarkThemeColors = darkColorScheme(
 
     primary = md_theme_dark_primary,
     onPrimary = md_theme_dark_onPrimary,

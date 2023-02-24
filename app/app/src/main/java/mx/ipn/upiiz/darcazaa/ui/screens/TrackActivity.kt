@@ -17,6 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -25,16 +26,12 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
-import com.google.maps.android.ktx.addMarker
-import com.google.maps.android.ktx.addPolygon
+import com.google.maps.android.compose.*
 import dagger.hilt.android.AndroidEntryPoint
 import mx.ipn.upiiz.darcazaa.R
 import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
 import mx.ipn.upiiz.darcazaa.ui.components.BatteryComponent
-import mx.ipn.upiiz.darcazaa.ui.components.MapView
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
-import mx.ipn.upiiz.darcazaa.utils.drawDrone
-import mx.ipn.upiiz.darcazaa.utils.drawRoutineArea
 import mx.ipn.upiiz.darcazaa.utils.toFixedString
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
 
@@ -64,10 +61,10 @@ class TrackActivity : AppCompatActivity() {
                                     Text(text = "Cancelar")
                                 },
                                 icon = {
-                                       Icon(
-                                           imageVector = Icons.Rounded.FlightLand,
-                                           contentDescription = null
-                                       )
+                                    Icon(
+                                        imageVector = Icons.Rounded.FlightLand,
+                                        contentDescription = null
+                                    )
                                 },
                                 onClick = {
                                     chargingStationViewModel.cancelRoutine()
@@ -109,36 +106,47 @@ class TrackActivity : AppCompatActivity() {
                         18f
                     }
 
-                    Box {
-                        MapView(
+                    Box(
+                        modifier = Modifier.padding(it)
+                    ) {
+                        GoogleMap(
                             modifier = Modifier.fillMaxSize(),
-                            mapFinish = {
-                                it.mapType = GoogleMap.MAP_TYPE_SATELLITE
-                                it.isBuildingsEnabled = true
-                                it.uiSettings.isScrollGesturesEnabled = false
-                                it.uiSettings.isZoomGesturesEnabled = false
-                                it.uiSettings.isRotateGesturesEnabled = false
-                                it.uiSettings.isTiltGesturesEnabled = false
-                                it.uiSettings.isCompassEnabled = false
-
-                                it.setOnCameraIdleListener { canUpdateCamera = true }
-                            }
+                            properties = MapProperties(
+                                mapType = MapType.SATELLITE,
+                                isBuildingEnabled = true,
+                            ),
+                            uiSettings = MapUiSettings(
+                                scrollGesturesEnabled = false,
+                                zoomGesturesEnabled = false,
+                                rotationGesturesEnabled = false,
+                                tiltGesturesEnabled = false,
+                                compassEnabled = false
+                            ),
+                            cameraPositionState = CameraPositionState(
+                                position = CameraPosition.builder().target(dronePosition.let { latLng ->
+                                    LatLng(
+                                        latLng?.latitude ?: 0.0,
+                                        latLng?.longitude ?: 0.0
+                                    )
+                                }).tilt(
+                                    currentTilt
+                                ).zoom(currentZoom).build(),
+                            ),
                         ) {
                             dronePosition?.let { latLng ->
-                                val position = LatLng(latLng.latitude, latLng.longitude)
-                                it.drawDrone(latLng)
-                                if (canUpdateCamera) {
-                                    it.moveCamera(
-                                        CameraUpdateFactory.newCameraPosition(
-                                            CameraPosition.builder().target(position).tilt(
-                                                currentTilt
-                                            ).zoom(currentZoom).build()
-                                        )
-                                    )
-                                }
+                                Marker(
+                                    state = MarkerState(LatLng(latLng.latitude, latLng.longitude)),
+                                    icon = BitmapDescriptorFactory.fromResource(R.drawable.drone_marker),
+                                    rotation = latLng.heading.toFloat(),
+                                    anchor = Offset(0.5f, 0.5f)
+                                )
                             }
-                            currentRoutine?.let { routine ->
-                                it.drawRoutineArea(routine.routine, colorScheme)
+                            currentRoutine?.let { wps ->
+                                Polygon(
+                                    points = PolyUtil.decode(wps.routine.polygon),
+                                    fillColor = colorScheme.primary.copy(alpha = 0.2f),
+                                    strokeColor = colorScheme.primary
+                                )
                             }
                         }
                         Card(

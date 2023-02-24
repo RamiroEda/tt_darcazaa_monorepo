@@ -4,6 +4,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
 import com.google.maps.android.SphericalUtil
 import org.jgrapht.alg.tour.GreedyHeuristicTSP
+import org.jgrapht.alg.tour.NearestInsertionHeuristicTSP
 import org.jgrapht.graph.DefaultWeightedEdge
 import org.jgrapht.graph.SimpleWeightedGraph
 import kotlin.math.absoluteValue
@@ -34,7 +35,7 @@ fun areaTsp(area: List<LatLng>): List<LatLng> {
         }
     }
 
-    return GreedyHeuristicTSP<LatLng, DefaultWeightedEdge>()
+    return NearestInsertionHeuristicTSP<LatLng, DefaultWeightedEdge>()
         .getTour(graph)
         .vertexList
 }

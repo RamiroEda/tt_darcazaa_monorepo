@@ -25,24 +25,31 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.PolyUtil
 import com.google.maps.android.SphericalUtil
+import com.google.maps.android.compose.*
 import dagger.hilt.android.AndroidEntryPoint
+import mx.ipn.upiiz.darcazaa.R
 import mx.ipn.upiiz.darcazaa.data.models.RoutineWithWaypoints
 import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
 import mx.ipn.upiiz.darcazaa.data.models.viewModelFactory
 import mx.ipn.upiiz.darcazaa.data.repositories.HistoryRepository
 import mx.ipn.upiiz.darcazaa.ui.components.BatteryComponent
 import mx.ipn.upiiz.darcazaa.ui.components.HistoryItem
-import mx.ipn.upiiz.darcazaa.ui.components.MapView
 import mx.ipn.upiiz.darcazaa.ui.components.ValueDisplay
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
+import mx.ipn.upiiz.darcazaa.ui.theme.LightThemeColors
 import mx.ipn.upiiz.darcazaa.utils.*
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
 import mx.ipn.upiiz.darcazaa.view_models.HistoryViewModel
@@ -53,7 +60,9 @@ import kotlin.math.ceil
 class RoutineInfoActivity : AppCompatActivity() {
     private val chargingStationViewModel: ChargingStationViewModel by viewModels()
     private lateinit var historyViewModel: HistoryViewModel
-    @Inject lateinit var historyRepository: HistoryRepository
+
+    @Inject
+    lateinit var historyRepository: HistoryRepository
 
     @OptIn(ExperimentalMaterialApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,6 +86,11 @@ class RoutineInfoActivity : AppCompatActivity() {
         ).get(HistoryViewModel::class.java)
 
         val polygon = PolyUtil.decode(routineWithWaypoints.routine.polygon)
+        val bounds = LatLngBounds.builder().also { builder ->
+            polygon.forEach {
+                builder.include(it)
+            }
+        }.build()
 
         setContent {
             DARCAZAATheme {
@@ -85,6 +99,7 @@ class RoutineInfoActivity : AppCompatActivity() {
                 val currentRoutine = chargingStationViewModel.currentRoutine.value
                 val systemStatus = chargingStationViewModel.systemStatus.value
                 val battery = chargingStationViewModel.battery.value
+                val cameraPositionState = rememberCameraPositionState()
 
                 BottomSheetScaffold(
                     sheetContent = {
@@ -118,7 +133,12 @@ class RoutineInfoActivity : AppCompatActivity() {
                                     FloatingActionButton(
                                         modifier = Modifier.padding(start = 8.dp),
                                         onClick = {
-                                            startActivity(Intent(this@RoutineInfoActivity, TrackActivity::class.java))
+                                            startActivity(
+                                                Intent(
+                                                    this@RoutineInfoActivity,
+                                                    TrackActivity::class.java
+                                                )
+                                            )
                                         },
                                         containerColor = colorScheme.tertiaryContainer,
                                         contentColor = colorScheme.tertiary
@@ -147,30 +167,46 @@ class RoutineInfoActivity : AppCompatActivity() {
                     }
                 ) {
                     Box {
-                        MapView(
-                            mapFinish = {
-                                it.mapType = GoogleMap.MAP_TYPE_SATELLITE
-                            },
-                            mapPadding = PaddingValues(
+                        GoogleMap(
+                            contentPadding = PaddingValues(
                                 bottom = 400.dp
-                            )
-                        ) { map ->
-                            map.moveCamera(
-                                CameraUpdateFactory.newLatLngBounds(
-                                    LatLngBounds.builder().also { builder ->
-                                        polygon.forEach {
-                                            builder.include(it)
-                                        }
-                                    }.build(), 32
+                            ),
+                            properties = MapProperties(
+                                mapType = MapType.SATELLITE
+                            ),
+                            cameraPositionState = cameraPositionState,
+                            onMapLoaded = {
+                                cameraPositionState.move(
+                                    CameraUpdateFactory.newLatLngBounds(
+                                        bounds, 32
+                                    )
                                 )
-                            )
-                            if(currentRoutine?.routine?.id == routineWithWaypoints.routine.id) {
-                                droneLocation?.let {
-                                    map.drawDrone(it)
-                                }
-                                map.drawWaypoints(routineWithWaypoints.waypoints, colorScheme)
                             }
-                            map.drawRoutineArea(routineWithWaypoints.routine, colorScheme)
+                            ) {
+                            Polygon(
+                                points = polygon,
+                                fillColor = LightThemeColors.primary.copy(alpha = 0.5f),
+                                strokeColor = LightThemeColors.primary
+                            )
+                            if (currentRoutine?.routine?.id == routineWithWaypoints.routine.id) {
+                                droneLocation?.let {
+                                    Marker(
+                                        state = MarkerState(LatLng(it.latitude, it.longitude)),
+                                        icon = BitmapDescriptorFactory.fromResource(R.drawable.drone_marker),
+                                        rotation = it.heading.toFloat(),
+                                        anchor = Offset(0.5f, 0.5f)
+                                    )
+                                }
+                            }
+                            Polyline(
+                                points = routineWithWaypoints.waypoints.map {
+                                    LatLng(
+                                        it.latitude,
+                                        it.longitude
+                                    )
+                                },
+                                color = LightThemeColors.primaryContainer
+                            )
                         }
                         Card(
                             modifier = Modifier
@@ -211,13 +247,21 @@ fun RideInfo(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             val area = SphericalUtil.computeArea(polygon)
-            ValueDisplay(title = "Area", value = if(area.div(1000000) < 1){
-                "${area.toInt()} m²"
-            }else{
-                "${area.div(1000000).toFixedString(1)} km²"
-            })
-            ValueDisplay(title = "Tiempo", value = "${ceil((SphericalUtil.computeLength(waypoints)/10.0)/60).toInt()} min")
-            ValueDisplay(title = "Hora", value = "${routineWithWaypoints.routine.start.toHour()} hrs")
+            ValueDisplay(
+                title = "Area", value = if (area.div(1000000) < 1) {
+                    "${area.toInt()} m²"
+                } else {
+                    "${area.div(1000000).toFixedString(1)} km²"
+                }
+            )
+            ValueDisplay(
+                title = "Tiempo",
+                value = "${ceil((SphericalUtil.computeLength(waypoints) / 10.0) / 60).toInt()} min"
+            )
+            ValueDisplay(
+                title = "Hora",
+                value = "${routineWithWaypoints.routine.start.toHour()} hrs"
+            )
         }
         Divider()
         LazyColumn {
@@ -229,9 +273,20 @@ fun RideInfo(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            items(historyViewModel.history){
-                Card {
-                    HistoryItem(it)
+            if (historyViewModel.history.isNotEmpty()) {
+                items(historyViewModel.history) {
+                    Card {
+                        HistoryItem(it)
+                    }
+                }
+            } else {
+                item {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 32.dp, vertical = 0.dp),
+                        text = "Sin ejecuciones recientes",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
         }
