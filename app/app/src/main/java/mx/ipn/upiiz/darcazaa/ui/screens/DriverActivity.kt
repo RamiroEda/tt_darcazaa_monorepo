@@ -6,6 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.PressGestureScope
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -69,6 +72,24 @@ class DriverActivity : AppCompatActivity() {
          window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         setContent {
+            val heading by animateFloatAsState(
+                targetValue = chargingStationViewModel.position.value?.heading?.toFloat() ?: 0f
+            )
+            val lat by animateFloatAsState(
+                targetValue = chargingStationViewModel.position.value?.latitude?.toFloat() ?: 0f,
+                animationSpec = tween(
+                    easing = LinearEasing,
+                    durationMillis = 500
+                )
+            )
+            val lng by animateFloatAsState(
+                targetValue = chargingStationViewModel.position.value?.longitude?.toFloat() ?: 0f,
+                animationSpec = tween(
+                    easing = LinearEasing,
+                    durationMillis = 500
+                )
+            )
+
             DARCAZAATheme {
                 Scaffold(
                     containerColor = Color.White
@@ -87,21 +108,20 @@ class DriverActivity : AppCompatActivity() {
                             position = chargingStationViewModel.position.value.let {
                                 CameraPosition(
                                     LatLng(
-                                        it?.latitude ?: 0.0,
-                                        it?.longitude ?: 0.0,
+                                        lat.toDouble(),
+                                        lng.toDouble(),
                                     ),
                                     18f,
                                     0f,
-                                    it?.heading?.toFloat() ?: 0f
+                                    heading
                                 )
                             }
                         )
                     ){
                         chargingStationViewModel.position.value?.let {
                             Marker(
-                                state = MarkerState(LatLng(it.latitude, it.longitude)),
+                                state = MarkerState(LatLng(lat.toDouble(), lng.toDouble())),
                                 icon = BitmapDescriptorFactory.fromResource(R.drawable.drone_marker),
-                                rotation = it.heading.toFloat(),
                                 anchor = Offset(0.5f, 0.5f)
                             )
                         }

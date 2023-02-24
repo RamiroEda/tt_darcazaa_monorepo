@@ -5,6 +5,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,9 +51,25 @@ class TrackActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        var canUpdateCamera = true
-
         setContent {
+            val heading by animateFloatAsState(
+                targetValue = chargingStationViewModel.position.value?.heading?.toFloat() ?: 0f
+            )
+            val lat by animateFloatAsState(
+                targetValue = chargingStationViewModel.position.value?.latitude?.toFloat() ?: 0f,
+                animationSpec = tween(
+                    easing = LinearEasing,
+                    durationMillis = 500
+                )
+            )
+            val lng by animateFloatAsState(
+                targetValue = chargingStationViewModel.position.value?.longitude?.toFloat() ?: 0f,
+                animationSpec = tween(
+                    easing = LinearEasing,
+                    durationMillis = 500
+                )
+            )
+
             DARCAZAATheme {
                 val droneStatus = chargingStationViewModel.systemStatus.value
                 Scaffold(
@@ -123,21 +143,21 @@ class TrackActivity : AppCompatActivity() {
                                 compassEnabled = false
                             ),
                             cameraPositionState = CameraPositionState(
-                                position = CameraPosition.builder().target(dronePosition.let { latLng ->
+                                position = CameraPosition.builder().target(
                                     LatLng(
-                                        latLng?.latitude ?: 0.0,
-                                        latLng?.longitude ?: 0.0
+                                        lat.toDouble(),
+                                        lng.toDouble()
                                     )
-                                }).tilt(
+                                ).tilt(
                                     currentTilt
                                 ).zoom(currentZoom).build(),
                             ),
                         ) {
-                            dronePosition?.let { latLng ->
+                            dronePosition?.let {
                                 Marker(
-                                    state = MarkerState(LatLng(latLng.latitude, latLng.longitude)),
+                                    state = MarkerState(LatLng(lat.toDouble(), lng.toDouble())),
                                     icon = BitmapDescriptorFactory.fromResource(R.drawable.drone_marker),
-                                    rotation = latLng.heading.toFloat(),
+                                    rotation = heading,
                                     anchor = Offset(0.5f, 0.5f)
                                 )
                             }

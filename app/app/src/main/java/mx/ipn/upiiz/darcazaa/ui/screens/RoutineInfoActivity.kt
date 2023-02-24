@@ -6,6 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,15 +26,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -100,6 +101,23 @@ class RoutineInfoActivity : AppCompatActivity() {
                 val systemStatus = chargingStationViewModel.systemStatus.value
                 val battery = chargingStationViewModel.battery.value
                 val cameraPositionState = rememberCameraPositionState()
+                val heading by animateFloatAsState(
+                    targetValue = droneLocation?.heading?.toFloat() ?: 0f
+                )
+                val lat by animateFloatAsState(
+                    targetValue = droneLocation?.latitude?.toFloat() ?: 0f,
+                    animationSpec = tween(
+                        easing = LinearEasing,
+                        durationMillis = 500
+                    )
+                )
+                val lng by animateFloatAsState(
+                    targetValue = droneLocation?.longitude?.toFloat() ?: 0f,
+                    animationSpec = tween(
+                        easing = LinearEasing,
+                        durationMillis = 500
+                    )
+                )
 
                 BottomSheetScaffold(
                     sheetContent = {
@@ -191,9 +209,9 @@ class RoutineInfoActivity : AppCompatActivity() {
                             if (currentRoutine?.routine?.id == routineWithWaypoints.routine.id) {
                                 droneLocation?.let {
                                     Marker(
-                                        state = MarkerState(LatLng(it.latitude, it.longitude)),
+                                        state = MarkerState(LatLng(lat.toDouble(), lng.toDouble())),
                                         icon = BitmapDescriptorFactory.fromResource(R.drawable.drone_marker),
-                                        rotation = it.heading.toFloat(),
+                                        rotation = heading,
                                         anchor = Offset(0.5f, 0.5f)
                                     )
                                 }
