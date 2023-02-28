@@ -121,6 +121,7 @@ fun RoutineItem(
                 TextButton(
                     onClick = {
                         chargingStationViewModel.removeRoutine(routineWithWaypoints.routine)
+                        showDeleteDialog = false
                     },
                 ) {
                     Text(

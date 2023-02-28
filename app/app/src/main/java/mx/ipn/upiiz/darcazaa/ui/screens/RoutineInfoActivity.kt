@@ -293,9 +293,7 @@ fun RideInfo(
             }
             if (historyViewModel.history.isNotEmpty()) {
                 items(historyViewModel.history) {
-                    Card {
-                        HistoryItem(it)
-                    }
+                    HistoryItem(it)
                 }
             } else {
                 item {

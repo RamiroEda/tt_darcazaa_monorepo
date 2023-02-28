@@ -100,7 +100,8 @@ fun RoutineBasicInfo(
                 onValueChange = { addRoutineViewModel.title.value = it },
                 label = {
                     Text(text = "Titulo")
-                }
+                },
+                singleLine = true
             )
             Text(
                 modifier = Modifier.padding(top = 32.dp),
@@ -234,7 +235,9 @@ fun SelectArea(
     addRoutineViewModel: AddRoutineViewModel = viewModel()
 ) {
     val context = LocalContext.current as FragmentActivity
-    val colorScheme = MaterialTheme.colorScheme
+    var locationEnabled by remember {
+        mutableStateOf(false)
+    }
     val cameraPositionState = rememberCameraPositionState()
 
     Scaffold(
@@ -296,12 +299,16 @@ fun SelectArea(
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(
                     mapType = MapType.SATELLITE,
-                    isMyLocationEnabled = true
+                    isMyLocationEnabled = locationEnabled
+                ),
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = false
                 ),
                 onMapLoaded = {
                     context.permissionsBuilder(Manifest.permission.ACCESS_FINE_LOCATION).build()
                         .send { res ->
                             if (res.allGranted()) {
+                                locationEnabled = true
                                 val fusedLocationClient =
                                     LocationServices.getFusedLocationProviderClient(context)
                                 fusedLocationClient.lastLocation.addOnSuccessListener { loc ->

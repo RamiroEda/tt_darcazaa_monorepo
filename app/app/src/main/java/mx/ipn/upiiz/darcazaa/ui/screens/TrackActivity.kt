@@ -35,6 +35,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import mx.ipn.upiiz.darcazaa.R
 import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
 import mx.ipn.upiiz.darcazaa.ui.components.BatteryComponent
+import mx.ipn.upiiz.darcazaa.ui.components.DroneStats
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
 import mx.ipn.upiiz.darcazaa.utils.toFixedString
 import mx.ipn.upiiz.darcazaa.view_models.ChargingStationViewModel
@@ -140,7 +141,8 @@ class TrackActivity : AppCompatActivity() {
                                 zoomGesturesEnabled = false,
                                 rotationGesturesEnabled = false,
                                 tiltGesturesEnabled = false,
-                                compassEnabled = false
+                                compassEnabled = false,
+                                zoomControlsEnabled = false
                             ),
                             cameraPositionState = CameraPositionState(
                                 position = CameraPosition.builder().target(
@@ -169,45 +171,9 @@ class TrackActivity : AppCompatActivity() {
                                 )
                             }
                         }
-                        Card(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(16.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    modifier = Modifier.padding(bottom = 8.dp),
-                                    text = "Estado: ${chargingStationViewModel.systemStatus.value.message}",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                                BatteryComponent(
-                                    chargingStationViewModel.battery.value
-                                )
-                                Text(
-                                    modifier = Modifier.padding(top = 8.dp),
-                                    text = "Altitud: ${
-                                        chargingStationViewModel.position.value?.altitude?.toFixedString(
-                                            2
-                                        ) ?: 0
-                                    } m",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                                Text(
-                                    text = "Velocidad: ${
-                                        chargingStationViewModel.position.value?.speed?.toFixedString(
-                                            2
-                                        ) ?: 0.0
-                                    } m/s",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                )
-                            }
-                        }
+                        DroneStats(
+                            modifier = Modifier.align(Alignment.TopEnd)
+                        )
                     }
                 }
             }

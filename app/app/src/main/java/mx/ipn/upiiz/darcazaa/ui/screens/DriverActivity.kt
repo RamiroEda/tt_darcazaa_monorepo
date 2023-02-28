@@ -44,6 +44,7 @@ import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.data.models.WebSocketDataSource
+import mx.ipn.upiiz.darcazaa.ui.components.DroneStats
 import mx.ipn.upiiz.darcazaa.ui.components.VideoPlayer
 import mx.ipn.upiiz.darcazaa.ui.components.rememberExoPlayer
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
@@ -72,9 +73,16 @@ class DriverActivity : AppCompatActivity() {
          window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         setContent {
+            val realtimeHeading = chargingStationViewModel.position.value?.heading?.toFloat() ?: 0f
             val heading by animateFloatAsState(
-                targetValue = chargingStationViewModel.position.value?.heading?.toFloat() ?: 0f
+                targetValue = realtimeHeading,
+                animationSpec = tween(
+                    easing = LinearEasing,
+                    durationMillis = if(realtimeHeading !in 5f..355f) 0 else 500
+                )
             )
+            println(heading)
+
             val lat by animateFloatAsState(
                 targetValue = chargingStationViewModel.position.value?.latitude?.toFloat() ?: 0f,
                 animationSpec = tween(
@@ -102,7 +110,8 @@ class DriverActivity : AppCompatActivity() {
                             tiltGesturesEnabled = false,
                             rotationGesturesEnabled = false,
                             zoomGesturesEnabled = false,
-                            scrollGesturesEnabled = false
+                            scrollGesturesEnabled = false,
+                            zoomControlsEnabled = false,
                         ),
                         cameraPositionState = CameraPositionState(
                             position = chargingStationViewModel.position.value.let {
@@ -116,6 +125,10 @@ class DriverActivity : AppCompatActivity() {
                                     heading
                                 )
                             }
+                        ),
+                        contentPadding = PaddingValues(
+                            horizontal = 216.dp,
+                            vertical = 2.dp
                         )
                     ){
                         chargingStationViewModel.position.value?.let {
@@ -133,6 +146,10 @@ class DriverActivity : AppCompatActivity() {
                         var isDrivingEnabled by remember {
                             mutableStateOf(false)
                         }
+
+                        DroneStats(
+                            modifier = Modifier.align(Alignment.TopStart)
+                        )
 
                         Box(
                             modifier = Modifier

@@ -48,7 +48,7 @@ class AddRoutineViewModel @Inject constructor(
                     title.value,
                     false,
                     PolyUtil.encode(selectedPolygon),
-                    Random.nextInt().toUInt().toString(16)
+                    Random(System.currentTimeMillis()).nextInt().toUInt().toString(16)
                 )
                 routineRepository.addRoutine(routine)
                 routineRepository.addWaypoints(areaTsp(selectedPolygon).mapIndexed { index, latLng ->

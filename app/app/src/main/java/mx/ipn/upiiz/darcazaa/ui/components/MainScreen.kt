@@ -39,7 +39,9 @@ fun MainScreen(
             )
         }
     ) {
-        Column {
+        Column(
+            modifier = Modifier.padding(it)
+        ) {
             AlertBox(
                 preferences,
                 socketProvider
