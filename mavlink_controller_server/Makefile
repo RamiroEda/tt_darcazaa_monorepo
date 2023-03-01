@@ -7,6 +7,9 @@ install:
 run:
 	poetry run flask run --no-reload
 
+run-raw:
+	python3 -m flask run --no-reload
+
 savereq:
 	poetry export --without-hashes -f requirements.txt > requirements.txt
 

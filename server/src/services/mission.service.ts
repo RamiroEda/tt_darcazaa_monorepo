@@ -145,6 +145,54 @@ export class MissionService {
         ]);
     }
 
+    async sync(data: {
+        routines: Array<{
+            start: number;
+            repeat: string;
+            title: string;
+            hash: string;
+        }>;
+        waypoints: Array<{
+            index: number;
+            latitude: number;
+            longitude: number;
+            routine_hash: string;
+        }>;
+    }) {
+        const localHashes = (await this.getAll()).map((it) => it.hash);
+        const newHashes = data.routines.map((it) => it.hash);
+
+        const deletedHashes = localHashes.filter(
+            (it) => !newHashes.includes(it),
+        );
+
+        await Promise.all(
+            deletedHashes.map((it) =>
+                this.prisma.routine.delete({
+                    where: {
+                        hash: it,
+                    },
+                }),
+            ),
+        );
+
+        console.log('🗑️', deletedHashes.length, 'records deleted');
+
+        for (const routine of data.routines) {
+            if (!localHashes.includes(routine.hash)) {
+                console.log(`✅ Routine ${routine.title} added`);
+                await this.prisma.routine.create({
+                    data: routine,
+                });
+                await Promise.all(
+                    data.waypoints
+                        .filter((it) => it.routine_hash === routine.hash)
+                        .map((it) => this.prisma.waypoint.create({ data: it })),
+                );
+            }
+        }
+    }
+
     async deleteAll() {
         const del = await this.prisma.routine.deleteMany();
         console.log('🗑️', del.count, 'records deleted');
