@@ -6,6 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.PressGestureScope
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -31,11 +34,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
 import dagger.hilt.android.AndroidEntryPoint
+import mx.ipn.upiiz.darcazaa.R
 import mx.ipn.upiiz.darcazaa.data.models.PreferenceKeys
 import mx.ipn.upiiz.darcazaa.data.models.SystemStatus
 import mx.ipn.upiiz.darcazaa.data.models.UserPreferences
 import mx.ipn.upiiz.darcazaa.data.models.WebSocketDataSource
+import mx.ipn.upiiz.darcazaa.ui.components.DroneStats
 import mx.ipn.upiiz.darcazaa.ui.components.VideoPlayer
 import mx.ipn.upiiz.darcazaa.ui.components.rememberExoPlayer
 import mx.ipn.upiiz.darcazaa.ui.theme.DARCAZAATheme
@@ -64,16 +73,72 @@ class DriverActivity : AppCompatActivity() {
          window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         setContent {
-            val exoPlayer = rememberExoPlayer()
+            val realtimeHeading = chargingStationViewModel.position.value?.heading?.toFloat() ?: 0f
+            val heading by animateFloatAsState(
+                targetValue = realtimeHeading,
+                animationSpec = tween(
+                    easing = LinearEasing,
+                    durationMillis = if(realtimeHeading !in 5f..355f) 0 else 500
+                )
+            )
+            println(heading)
+
+            val lat by animateFloatAsState(
+                targetValue = chargingStationViewModel.position.value?.latitude?.toFloat() ?: 0f,
+                animationSpec = tween(
+                    easing = LinearEasing,
+                    durationMillis = 500
+                )
+            )
+            val lng by animateFloatAsState(
+                targetValue = chargingStationViewModel.position.value?.longitude?.toFloat() ?: 0f,
+                animationSpec = tween(
+                    easing = LinearEasing,
+                    durationMillis = 500
+                )
+            )
 
             DARCAZAATheme {
                 Scaffold(
                     containerColor = Color.White
                 ) {
-                    VideoPlayer(
-                        modifier = Modifier.fillMaxSize(),
-                        exoPlayer = exoPlayer,
-                    )
+                    GoogleMap(
+                        properties = MapProperties(
+                            mapType = MapType.SATELLITE,
+                        ),
+                        uiSettings = MapUiSettings(
+                            tiltGesturesEnabled = false,
+                            rotationGesturesEnabled = false,
+                            zoomGesturesEnabled = false,
+                            scrollGesturesEnabled = false,
+                            zoomControlsEnabled = false,
+                        ),
+                        cameraPositionState = CameraPositionState(
+                            position = chargingStationViewModel.position.value.let {
+                                CameraPosition(
+                                    LatLng(
+                                        lat.toDouble(),
+                                        lng.toDouble(),
+                                    ),
+                                    18f,
+                                    0f,
+                                    heading
+                                )
+                            }
+                        ),
+                        contentPadding = PaddingValues(
+                            horizontal = 216.dp,
+                            vertical = 2.dp
+                        )
+                    ){
+                        chargingStationViewModel.position.value?.let {
+                            Marker(
+                                state = MarkerState(LatLng(lat.toDouble(), lng.toDouble())),
+                                icon = BitmapDescriptorFactory.fromResource(R.drawable.drone_marker),
+                                anchor = Offset(0.5f, 0.5f)
+                            )
+                        }
+                    }
 
                     Box(
                         modifier = Modifier.fillMaxSize()
@@ -81,6 +146,10 @@ class DriverActivity : AppCompatActivity() {
                         var isDrivingEnabled by remember {
                             mutableStateOf(false)
                         }
+
+                        DroneStats(
+                            modifier = Modifier.align(Alignment.TopStart)
+                        )
 
                         Box(
                             modifier = Modifier
@@ -284,17 +353,6 @@ class DriverActivity : AppCompatActivity() {
                         }
                     }
                 }
-            }
-            LaunchedEffect(key1 = exoPlayer) {
-                exoPlayer.setMediaSource(
-                    ProgressiveMediaSource.Factory(WebSocketDataSource.Factory()).createMediaSource(
-                        MediaItem
-                            .fromUri("ws://${preferences.get(PreferenceKeys.Url)}/camera")
-                    )
-                )
-                exoPlayer.prepare()
-                exoPlayer.playWhenReady = true
-                exoPlayer.play()
             }
         }
     }

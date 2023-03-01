@@ -70,7 +70,7 @@ fun RoutineItem(
                 Image(
                     painter = painterResource(id = R.drawable.drone),
                     contentDescription = null,
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
                 )
             }
             Column(
@@ -121,6 +121,7 @@ fun RoutineItem(
                 TextButton(
                     onClick = {
                         chargingStationViewModel.removeRoutine(routineWithWaypoints.routine)
+                        showDeleteDialog = false
                     },
                 ) {
                     Text(
