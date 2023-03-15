@@ -1,9 +1,7 @@
-
+from distutils import util
 import os
 
 WAYPOINT_ACCEPTANCE_RADIUS = int(os.environ['WAYPOINT_ACCEPTANCE_RADIUS'])
-MINIMUM_BATTERY_TO_START = int(os.environ['MINIMUM_BATTERY_TO_START'])
-MINIMUM_BATTERY = int(os.environ['MINIMUM_BATTERY'])
 DRONE_ALTITUDE = float(os.environ['DRONE_ALTITUDE'])
 MAX_WINDSPEED = float(os.environ['MAX_WINDSPEED'])
 FLASK_ENV = os.environ['FLASK_ENV']
@@ -11,3 +9,9 @@ WEBSOCKET_SERVER = os.environ['WEBSOCKET_SERVER']
 DRONE_IP = os.environ['DRONE_IP']
 SERVO_PIN = int(os.environ['SERVO_PIN'])
 GROUND_SPEED = 10
+
+BATTERY_USE_VOLTAGE = bool(util.strtobool(os.environ['BATTERY_USE_VOLTAGE']))
+MINIMUM_BATTERY = float(os.environ['MINIMUM_BATTERY'])
+MINIMUM_BATTERY_TO_START = float(os.environ['MINIMUM_BATTERY_TO_START'])
+MINIMUM_BATTERY_PERC = float(os.environ['MINIMUM_BATTERY_PERC'])
+MINIMUM_BATTERY_TO_START_PERC = float(os.environ['MINIMUM_BATTERY_TO_START_PERC'])

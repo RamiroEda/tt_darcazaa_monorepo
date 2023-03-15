@@ -77,8 +77,7 @@ export class RoutinesSocketService {
 
         this.nsp?.emit('sync', SyncingStatus.SYNCING);
         try {
-            await this.missionService.deleteAll();
-            await this.missionService.addAll(routines);
+            await this.missionService.sync(routines);
             await new Promise((res) => setTimeout(res, 2000));
             this.nsp?.emit('sync', SyncingStatus.SYNCED);
             this.nsp?.emit('routines', await this.missionService.getAll());
